@@ -1,0 +1,16 @@
+{
+  "name": "@passionware/component-factory",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "npm run build -- --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo 'Add lint script here'",
+    "ts": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@passionware/platform-ts": "*",
+    "merge-props": "^6.0.0"
+  }
+}

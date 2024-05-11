@@ -1,0 +1,6 @@
+{
+  "extends": "@passionware/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "./src"
+  }
+}

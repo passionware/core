@@ -1,0 +1,24 @@
+{
+  "name": "@passionware/icons",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "src/icons.tsx",
+  "scripts": {},
+  "dependencies": {},
+  "exports": {
+    ".": "./src/icons.tsx",
+    "./builder": "./src/_common/createIcon.tsx"
+  },
+  "devDependencies": {
+    "@passionware/eslint-config": "*",
+    "@passionware/typescript-config": "*",
+    "@turbo/gen": "^1.11.3",
+    "@types/eslint": "^8.56.1",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "react": "^18.2.0",
+    "typescript": "^5.4.5"
+  }
+}

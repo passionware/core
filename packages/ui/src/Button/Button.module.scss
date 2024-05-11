@@ -1,0 +1,46 @@
+.buttonBase_md {
+  @apply text-sm px-4 py-2 gap-2;
+  &:has(> :only-child > svg:only-child) {
+    @apply px-2;
+  }
+  & > :only-child:has(> svg:only-child) {
+    width: 1lh;
+    height: 1lh;
+    justify-content: center;
+  }
+  // todo: consider using variables to decouple button and icon sizes
+  svg:not([data-role="spinner"]),
+  img {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+[role="group"] > .buttonBase_md,
+[role="group"] > .buttonBase_sm {
+  @apply focus:z-[1];
+  @apply rounded-none first:rounded-l last:rounded-r;
+  &:not(:last-child):not(:focus) {
+    @apply border-r-0;
+  }
+  :focus + & {
+    @apply border-l-0;
+  }
+}
+
+.buttonBase_sm {
+  @apply text-sm px-2 py-1 gap-1;
+  &:has(> :only-child > svg:only-child) {
+    @apply px-1;
+  }
+  & > :only-child:has(> svg:only-child) {
+    width: 1lh;
+    height: 1lh;
+    justify-content: center;
+  }
+  // todo: consider using variables to decouple button and icon sizes
+  svg:not([data-role="spinner"]),
+  img {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+}

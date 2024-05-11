@@ -1,0 +1,12 @@
+{
+  "name": "@passionware/query-toolkit",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo 'Add lint script here'",
+    "ts": "tsc --noEmit"
+  }
+}

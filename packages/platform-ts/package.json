@@ -1,0 +1,9 @@
+{
+  "name": "@passionware/platform-ts",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "scripts": {
+    "lint": "echo 'Add lint script here'",
+    "ts": "tsc --noEmit"
+  }
+}

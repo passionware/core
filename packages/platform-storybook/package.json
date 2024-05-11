@@ -1,0 +1,10 @@
+{
+  "name": "@passionware/platform-storybook",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "scripts": {
+    "lint": "echo 'Add lint script here'",
+    "test": "echo 'Add test script here'",
+    "ts": "tsc --noEmit"
+  }
+}

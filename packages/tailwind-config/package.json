@@ -1,0 +1,12 @@
+{
+  "name": "@passionware/tailwind-config",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "scripts": {
+    "lint": "echo 'Add lint script here'",
+    "ts": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

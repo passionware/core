@@ -1,0 +1,64 @@
+@property --color-stop-1 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #6ee7b7;
+}
+
+@property --color-stop-2 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #3b82f6;
+}
+
+@property --color-stop-3 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #9333ea;
+}
+
+@property --color-stop-4 {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #f472b6;
+}
+@property --angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 45deg;
+}
+.backgroundAnimate {
+  background-image: linear-gradient(
+    var(--angle),
+    var(--color-stop-1),
+    var(--color-stop-2),
+    var(--color-stop-3),
+    var(--color-stop-4)
+  );
+  background-size: 400%;
+  animation: AnimationName 20s ease infinite;
+
+  @keyframes AnimationName {
+    0% {
+      --angle: 45deg;
+    }
+    100% {
+      --angle: 405deg;
+    }
+    0%,
+    100% {
+      --color-stop-1: #6ee7b7;
+      --color-stop-2: #3b82f6;
+      --color-stop-3: #9333ea;
+      --color-stop-4: #f472b6;
+      background-position: 0% 50%;
+    }
+    50% {
+      --color-stop-1: theme("colors.gray.100");
+      --color-stop-2: theme("colors.gray.300");
+      --color-stop-3: theme("colors.gray.600");
+      --color-stop-4: theme("colors.gray.950");
+      --angle: 225deg;
+      background-position: 100% 50%;
+    }
+  }
+}

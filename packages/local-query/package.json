@@ -1,0 +1,15 @@
+{
+  "name": "@passionware/local-query",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build -- --watch",
+    "test:watch": "vitest",
+    "lint": "echo 'Add lint script here'",
+    "ts": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@passionware/query-toolkit": "*"
+  }
+}
