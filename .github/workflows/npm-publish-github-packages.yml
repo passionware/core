@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: "npm"
       # npm ci is used here to install dependencies based on the lock file
       - run: npm ci
       - run: npm i @rollup/rollup-linux-x64-gnu
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: "npm"
       - run: npm ci
       - run: npm i @rollup/rollup-linux-x64-gnu
       - run: npm run ts
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: "npm"
       - run: npm ci
       - run: npm i @rollup/rollup-linux-x64-gnu
       - run: npm run lint
@@ -62,8 +62,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
-          registry-url: https://npm.pkg.github.com/
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - run: npm i @rollup/rollup-linux-x64-gnu
       - run: npm run build
