@@ -1,0 +1,73 @@
+name: Node.js Package
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+      - main
+      - develop--*
+
+jobs:
+  setup_dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+      # npm ci is used here to install dependencies based on the lock file
+      - run: npm ci
+      - run: npm i @rollup/rollup-linux-x64-gnu
+
+  build:
+    needs: setup_dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci
+      - run: npm i @rollup/rollup-linux-x64-gnu
+      - run: npm run ts
+      - run: npm run test
+
+  lint:
+    needs: setup_dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci
+      - run: npm i @rollup/rollup-linux-x64-gnu
+      - run: npm run lint
+
+  publish-gpr:
+    needs: [build, lint] # Ensure this job waits for both build and lint to complete
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          registry-url: https://npm.pkg.github.com/
+      - run: npm ci
+      - run: npm i @rollup/rollup-linux-x64-gnu
+      - run: npm run build
+      - run: npm run changeset -- version --snapshot dev
+      - run: npm run changeset -- publish --tag dev
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
