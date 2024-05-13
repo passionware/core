@@ -8,6 +8,7 @@ import {
   useClick,
   useDismiss,
   useFloating,
+  UseFloatingOptions,
   useInteractions,
   useListNavigation,
   useRole,
@@ -28,14 +29,16 @@ export interface DropdownMenuProps {
   // value: string; // not sure, this could be like preselected option
   onSelect?: (value: string) => void;
   placement?: Placement;
+  floatingOptions?: Partial<Omit<UseFloatingOptions, "open">>;
 }
 
 function DropdownMenuParent({
   children,
   onSelect,
   placement = "bottom-start",
+  floatingOptions,
 }: DropdownMenuProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // todo useControlledState
   const [query, setQuery] = useState("");
   //
   const [activeIndex, setActiveIndex] = useState<Maybe<number>>(
@@ -51,10 +54,14 @@ function DropdownMenuParent({
 
   const floating = useFloating({
     open: isOpen,
-    onOpenChange: setIsOpen,
+    onOpenChange: (open, event, reason) => {
+      setIsOpen(open);
+      floatingOptions?.onOpenChange?.(open, event, reason);
+    },
     placement,
     middleware: [offset(4), flip(), shift()],
     whileElementsMounted: autoUpdate,
+    ...floatingOptions,
   });
 
   const interactions = useInteractions([
