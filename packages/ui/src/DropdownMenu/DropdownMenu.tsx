@@ -36,7 +36,7 @@ function DropdownMenuParent({
   children,
   onSelect,
   placement = "bottom-start",
-  floatingOptions,
+  floatingOptions: { onOpenChange, ...floatingOptions } = {},
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false); // todo useControlledState
   const [query, setQuery] = useState("");
@@ -56,7 +56,7 @@ function DropdownMenuParent({
     open: isOpen,
     onOpenChange: (open, event, reason) => {
       setIsOpen(open);
-      floatingOptions?.onOpenChange?.(open, event, reason);
+      onOpenChange?.(open, event, reason);
     },
     placement,
     middleware: [offset(4), flip(), shift()],
