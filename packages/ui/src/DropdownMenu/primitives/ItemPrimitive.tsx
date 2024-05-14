@@ -17,21 +17,21 @@ export const ItemPrimitive = cf.div<{
           ? [
               {
                 normal: [
-                  "bg-brand-600 text-fg-surface",
+                  "bg-brand-600 text-white",
                   "dark:bg-brand-200 dark:text-gray-900",
                 ],
-                danger: ["bg-bg-danger-emphasis text-fg-surface"],
+                danger: ["bg-bg-danger-emphasis text-white"],
               }[colorVariant],
             ]
           : [
               {
                 normal: [
-                  "bg-white text-black",
-                  "dark:bg-gray-800 dark:text-gray-200",
+                  "bg-white text-black aria-disabled:text-gray-500",
+                  "dark:bg-gray-800 dark:text-gray-200 dark:aria-disabled:text-gray-500",
                 ],
                 danger: [
-                  "bg-white text-fg-danger",
-                  "dark:bg-gray-800 dark:text-red-400",
+                  "bg-white text-red-500 aria-disabled:text-gray-500",
+                  "dark:bg-gray-800 dark:text-red-400 dark:aria-disabled:text-gray-500",
                 ],
               }[colorVariant],
             ],
@@ -50,3 +50,8 @@ export function ItemPrimitiveIcon({
     className: classnames(children.props.className, "w-4 h-4"),
   });
 }
+
+export const ItemSecondaryText = cf.div({
+  className:
+    "text-gray-500 text-xs [[data-active=true]_&]:text-gray-500 dark:text-gray-400 dark:[[data-active=true]_&]:text-gray-500",
+});

@@ -7,7 +7,11 @@ import { OptionsLayout } from "../_common";
 import { Button } from "../Button";
 import { DropdownMenu, DropdownMenuProps } from "./DropdownMenu";
 import { CheckmarkPrimitive } from "./primitives/CheckmarkPrimitive";
-import { ItemPrimitive, ItemPrimitiveIcon } from "./primitives/ItemPrimitive";
+import {
+  ItemPrimitive,
+  ItemPrimitiveIcon,
+  ItemSecondaryText,
+} from "./primitives/ItemPrimitive";
 import { PopoverLayout } from "./primitives/PopoverLayout";
 import { PopoverPrimitive } from "./primitives/PopoverPrimitive";
 import { RadioButtonPrimitive } from "./primitives/RadioButtonPrimitive";
@@ -64,7 +68,7 @@ export const Default = {
   },
 } satisfies Story;
 
-export const WithIcons = {
+export const ComplexExample = {
   args: {
     children: (
       <>
@@ -95,23 +99,41 @@ export const WithIcons = {
                   <ItemPrimitiveIcon>
                     <IconChat />
                   </ItemPrimitiveIcon>
-                  Item 1
+                  <div>Item 1</div>
+                  <ItemSecondaryText>Secondary text</ItemSecondaryText>
                 </ItemPrimitive>
               </DropdownMenu.Item>
-              <DropdownMenu.Item label="Item 2">
+              <DropdownMenu.Item label="Item 2" disabled>
                 <ItemPrimitive>
                   <ItemPrimitiveIcon>
                     <IconPulse />
                   </ItemPrimitiveIcon>
-                  Item 2
+                  <div>Item 2 (disabled)</div>
+                  <ItemSecondaryText>Secondary text</ItemSecondaryText>
                 </ItemPrimitive>
               </DropdownMenu.Item>
               <DropdownMenu.Item label="Item 3">
+                <ItemPrimitive>
+                  <ItemPrimitiveIcon>
+                    <IconPulse />
+                  </ItemPrimitiveIcon>
+                  Item 3
+                </ItemPrimitive>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item label="Item 4">
                 <ItemPrimitive colorVariant="danger">
                   <ItemPrimitiveIcon>
                     <IconWand />
                   </ItemPrimitiveIcon>
-                  Item 3
+                  Item 4
+                </ItemPrimitive>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item label="Item 5" disabled>
+                <ItemPrimitive colorVariant="danger">
+                  <ItemPrimitiveIcon>
+                    <IconChat />
+                  </ItemPrimitiveIcon>
+                  Item 5 (disabled)
                 </ItemPrimitive>
               </DropdownMenu.Item>
             </PopoverLayout>
