@@ -6,5 +6,8 @@
     "lint": "echo 'Add lint script here'",
     "test": "echo 'Add test script here'",
     "ts": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@passionware/monads": "*"
   }
 }
