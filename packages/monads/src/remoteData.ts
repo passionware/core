@@ -178,6 +178,12 @@ export const rd = {
         return remoteData.data;
     }
   },
+  tryGetError<T>(remoteData: RemoteData<T>): Error | undefined {
+    if (remoteData.status === "error") {
+      return remoteData.error;
+    }
+    return undefined;
+  },
   journey<T>(remote: RemoteData<T>) {
     return {
       wait: <A>(pendingRenderer: NoFunction<A> | (() => A)) => ({

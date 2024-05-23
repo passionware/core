@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "storybook dev --port 6008",
+    "dev": "storybook dev --port 6100",
     "build": "storybook build"
   },
   "dependencies": {

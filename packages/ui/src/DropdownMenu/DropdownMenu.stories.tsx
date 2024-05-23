@@ -1,6 +1,9 @@
 import { IconChat, IconPulse, IconWand } from "@passionware/icons";
 import { rd } from "@passionware/monads";
-import { mapTestQuery, useTestQuery } from "@passionware/platform-storybook";
+import {
+  testQuery,
+} from "@passionware/platform-storybook";
+import { createMatcher } from "@passionware/query-toolkit";
 import { Meta, StoryObj } from "@storybook/react";
 import { useMemo, useState } from "react";
 import { OptionsLayout } from "../_common";
@@ -211,18 +214,12 @@ const options = [
 ];
 
 const useOptions = (query: string) => {
+  const matchingData = useMemo(
+    () => options.filter(createMatcher(query, (x) => x)),
+    [query],
+  );
   return rd.useLastWithPlaceholder(
-    useTestQuery(
-      useMemo(
-        () =>
-          mapTestQuery({ data: options, delay: 300 }, (x) =>
-            x.filter((option) =>
-              option.toLowerCase().includes(query?.toLowerCase() || ""),
-            ),
-          ),
-        [query],
-      ),
-    ),
+    testQuery.useData(testQuery.of(rd.of(matchingData), 500)),
   );
 };
 

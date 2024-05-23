@@ -1,74 +1,47 @@
 import { rd, RemoteData } from "@passionware/monads";
 import { useEffect, useState } from "react";
 
-export type UseTestQueryParams<T> =
-  | {
-      delay: "infinite";
-    }
-  | {
-      data: T;
-      delay?: number;
-    }
-  | {
-      error: Error;
-      delay: number;
-    };
+export type TestQuery<T> = {
+  remoteData: RemoteData<T>;
+  delay: number;
+};
 
-export function getTestQueryParamsData<T>(
-  params: UseTestQueryParams<T>,
-): T | undefined {
-  if ("data" in params) {
-    return params.data;
+function getInitialState<T>(query: TestQuery<T>) {
+  if (rd.isIdle(query.remoteData)) {
+    return rd.ofIdle();
   }
-  throw new Error("No data in params");
+  if (rd.isPending(query.remoteData)) {
+    return rd.ofPending();
+  }
+  // error or data - let's honour the delay 0 or more
+  if (query.delay === 0) {
+    return query.remoteData;
+  }
+  return rd.ofPending();
 }
 
-export function mapTestQuery<Data, NewData>(
-  params: UseTestQueryParams<Data>,
-  mapper: (data: Data) => NewData,
-): UseTestQueryParams<NewData> {
-  if ("data" in params) {
-    return {
-      ...params,
-      data: mapper(params.data),
-    };
-  }
-  return params;
-}
-
-export function useTestQuery<Data>(params: UseTestQueryParams<Data>) {
-  const [state, setState] = useState<RemoteData<Data>>(rd.ofPending());
-
-  const maybeData = "data" in params ? params.data : undefined;
-
-  useEffect(() => {
-    // Immediately return if delay is 'infinite' or Infinity to simulate an endless loading state
-    if (state.status !== "pending") {
-      setState(rd.ofPending());
-    }
-    if (params.delay === "infinite" || params.delay === Infinity) {
-      return;
-    }
-    function finalize() {
-      if ("error" in params && params.error) {
-        // Set error state if error is provided
-        setState(rd.ofError(params.error));
-      } else if ("data" in params && params.data) {
-        // Set data state if data fetching is successful
-        setState(rd.of(params.data));
+export const testQuery = {
+  of: <T>(remoteData: RemoteData<T>, delay: number = 0): TestQuery<T> => ({
+    remoteData,
+    delay,
+  }),
+  useData: <T>(query: TestQuery<T>) => {
+    const [state, setState] = useState<RemoteData<T>>(() =>
+      getInitialState(query),
+    );
+    const queryStatus = query.remoteData.status;
+    const maybeData = rd.tryGet(query.remoteData);
+    const maybeError = rd.tryGetError(query.remoteData);
+    useEffect(() => {
+      setState(getInitialState(query));
+      if (query.delay > 0) {
+        const timer = setTimeout(() => {
+          setState(query.remoteData);
+        }, query.delay);
+        return () => clearTimeout(timer);
       }
-    }
-    if (params.delay) {
-      const timer = setTimeout(() => {
-        finalize();
-      }, params.delay);
+    }, [queryStatus, maybeData, maybeError, query.delay]);
 
-      // Cleanup function to clear the timeout if the component unmounts
-      return () => clearTimeout(timer);
-    }
-    // no delay, finalize immediately
-    finalize();
-  }, [params.delay, maybeData]); // Dependency array to trigger effect on cha
-
-  return state;
-}
+    return state;
+  },
+};

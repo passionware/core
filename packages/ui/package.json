@@ -26,6 +26,7 @@
   "devDependencies": {
     "@passionware/eslint-config": "*",
     "@passionware/typescript-config": "*",
+    "@passionware/query-toolkit": "*",
     "@turbo/gen": "^1.11.3",
     "@types/eslint": "^8.56.1",
     "@types/node": "^20.10.6",

@@ -1,4 +1,4 @@
-export type { Ordering } from './ordering';
+export type { Ordering } from "./ordering";
 export type {
   Filter,
   StringFilter,
@@ -9,10 +9,11 @@ export type {
   StringOneOfFilter,
   StringIncludesFilter,
   ConditionalType,
-} from './filters';
+} from "./filters";
 
-export { toggleOrdering, getOrderingDirection } from './ordering';
+export { toggleOrdering, getOrderingDirection } from "./ordering";
 
-export type { BaseStats, ArchivedBaseStats } from './BaseStats';
+export type { BaseStats, ArchivedBaseStats } from "./BaseStats";
 
-export { default as pagination } from './pagination';
+export { default as pagination } from "./pagination";
+export * from "./stringMatcher";
