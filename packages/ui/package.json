@@ -10,6 +10,7 @@
     "./dropdown-menu": "./src/DropdownMenu/index.ts",
     "./dropdown-menu/primitives": "./src/DropdownMenu/primitives/index.ts",
     "./dropdown-menu/internals": "./src/DropdownMenu/internals/index.ts",
+    "./tooltip": "./src/Tooltip/index.ts",
     "./common": "./src/_common/index.ts"
   },
   "scripts": {
