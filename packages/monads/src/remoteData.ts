@@ -306,7 +306,12 @@ export const rd = {
     return remoteData.status === "success" && remoteData.isPlaceholderData;
   },
   useLast<T>(remoteData: RemoteData<T>): RemoteData<T> {
-    return useLast(remoteData, rd.isSuccess(remoteData)) ?? remoteData;
+    const lastSuccessData =
+      useLast(remoteData, rd.isSuccess(remoteData)) ?? remoteData;
+    if (rd.isAwaiting(remoteData)) {
+      return lastSuccessData;
+    }
+    return remoteData;
   },
   useLastWithPlaceholder: <T>(data: RemoteData<T>) => {
     const lastData = useLast(data, !rd.isAwaiting(data));
