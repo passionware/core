@@ -306,10 +306,10 @@ export const rd = {
     return remoteData.status === "success" && remoteData.isPlaceholderData;
   },
   useLast<T>(remoteData: RemoteData<T>): RemoteData<T> {
-    const lastSuccessData =
-      useLast(remoteData, rd.isSuccess(remoteData)) ?? remoteData;
-    if (rd.isAwaiting(remoteData)) {
-      return lastSuccessData;
+    const lastNotAwaitingData =
+      useLast(remoteData, !rd.isAwaiting(remoteData)) ?? remoteData;
+    if (rd.isAwaiting(remoteData) && rd.isSuccess(lastNotAwaitingData)) {
+      return lastNotAwaitingData;
     }
     return remoteData;
   },
