@@ -314,6 +314,10 @@ export const rd = {
       // initial load
       return data;
     }
+    if (!rd.isSuccess(lastData)) {
+      // we want only successful data to be reused
+      return data;
+    }
     if (lastData !== data) {
       // reloading
       return {

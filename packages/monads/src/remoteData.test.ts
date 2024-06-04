@@ -538,4 +538,39 @@ describe("RemoteData Utility", () => {
       expect(result.current).toBe(firstResult);
     });
   });
+
+  describe("useLastWithPlaceholder", () => {
+    it("complex scenarios", () => {
+      const data = rd.widen<number>(rd.ofPending());
+      const { result, rerender } = renderHook(
+        (data) => rd.useLastWithPlaceholder(data),
+        {
+          initialProps: data,
+        },
+      );
+      expect(result.current).toEqual(rd.ofPending());
+
+      rerender(rd.of(1));
+
+      expect(result.current).toEqual(rd.of(1));
+      expect(rd.isPlaceholderData(result.current)).toBe(false);
+
+      rerender(rd.ofPending());
+
+      expect(result.current.status).toBe("success");
+      expect(rd.isPlaceholderData(result.current)).toBe(true);
+
+      rerender(rd.ofError(new Error("Test error")));
+      expect(result.current.status).toBe("error");
+
+      rerender(rd.ofIdle());
+      expect(result.current.status).toBe("idle");
+
+      rerender(rd.ofPending());
+      expect(result.current.status).toBe("pending");
+
+      rerender(rd.of(2));
+      expect(result.current).toEqual(rd.of(2));
+    });
+  });
 });
