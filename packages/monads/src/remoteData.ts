@@ -305,16 +305,11 @@ export const rd = {
   ): remoteData is Extract<RemoteData<T>, { isPlaceholderData: true }> {
     return remoteData.status === "success" && remoteData.isPlaceholderData;
   },
-  useLast<T, V>(remoteData: RemoteData<T>, defaultValue: V): V | T {
-    return (
-      useLast(
-        rd.getOrElse(remoteData, defaultValue),
-        rd.isSuccess(remoteData),
-      ) ?? defaultValue
-    );
+  useLast<T>(remoteData: RemoteData<T>): RemoteData<T> {
+    return useLast(remoteData, rd.isSuccess(remoteData)) ?? remoteData;
   },
   useLastWithPlaceholder: <T>(data: RemoteData<T>) => {
-    const lastData = useLast(data, data.status !== "pending");
+    const lastData = useLast(data, !rd.isAwaiting(data));
     if (lastData === undefined) {
       // initial load
       return data;
