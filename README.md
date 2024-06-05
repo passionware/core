@@ -4,6 +4,8 @@ Systematic, repetitive decisions that are direct implementations of our values. 
 
 We actively work on improving our documentation and the code itself. We publish our libraries as open-source, and we are happy to share our knowledge with the community.
 
+Documentation: [passionware.eu/docs](https://passionware.eu/docs)
+
 
 
 ### Apps and Packages
