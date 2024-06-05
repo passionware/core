@@ -1,18 +1,10 @@
-# Turborepo starter
+# Passionware Core
 
-This is an official starter Turborepo.
+Systematic, repetitive decisions that are direct implementations of our values. They directly affect how our code looks.
 
-## Using this example
+We actively work on improving our documentation and the code itself. We publish our libraries as open-source, and we are happy to share our knowledge with the community.
 
-Run the following command:
 
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
