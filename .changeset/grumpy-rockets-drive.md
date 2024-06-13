@@ -7,6 +7,7 @@
 "@passionware/platform-react": patch
 "@passionware/platform-storybook": patch
 "@passionware/platform-ts": patch
+"@passionware/platform-js": patch
 "@passionware/query-toolkit": patch
 "@passionware/simple-event": patch
 "@passionware/simple-store": patch
@@ -14,6 +15,7 @@
 "@passionware/tailwind-config": patch
 "@passionware/typescript-config": patch
 "@passionware/ui": patch
+"@passionware/entities": patch
 ---
 
 initial releasse
