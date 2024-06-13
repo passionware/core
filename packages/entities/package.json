@@ -3,8 +3,6 @@
   "version": "0.0.0",
   "main": "./src/index.ts",
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
     "lint": "echo 'Add lint script here'",
     "ts": "tsc --noEmit"
   },
