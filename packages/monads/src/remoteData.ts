@@ -162,11 +162,14 @@ export const rd = {
         return remoteData.data;
     }
   },
-  getOrThrow<T>(remoteData: RemoteData<T>): T {
+  getOrThrow<T>(
+    remoteData: RemoteData<T>,
+    message = "Attempted to get value from non-successful RemoteData",
+  ): T {
     if (remoteData.status === "success") {
       return remoteData.data;
     }
-    throw new Error("Attempted to get value from non-successful RemoteData");
+    throw new Error(message);
   },
   tryGet<T>(remoteData: RemoteData<T>): T | undefined {
     switch (remoteData.status) {
