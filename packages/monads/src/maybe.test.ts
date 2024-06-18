@@ -1,5 +1,5 @@
 // maybe.test.ts
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { maybe } from "./maybe";
 
 // Adjust the import path as necessary
@@ -86,6 +86,41 @@ describe("maybe utility", () => {
       expect(
         maybe.map(maybe.of<number>(undefined), (x) => x * 2),
       ).toBeUndefined();
+    });
+  });
+
+  describe("call", () => {
+    it("should call the function with the value if present", () => {
+      const fn = vi.fn();
+      maybe.call(5, fn);
+      expect(fn).toHaveBeenCalledWith(5);
+    });
+
+    it("should not call the function if absent", () => {
+      const fn = vi.fn();
+      maybe.call(maybe.of<number>(null), fn);
+      expect(fn).not.toHaveBeenCalled();
+      maybe.call(maybe.of<number>(undefined), fn);
+      expect(fn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("callOrFallback", () => {
+    it("should call the function with the value if present", () => {
+      const fn = vi.fn();
+      maybe.callOrFallback(5, fn, () => 0);
+      expect(fn).toHaveBeenCalledWith(5);
+    });
+
+    it("should call the fallback function if absent", () => {
+      const fn = vi.fn();
+      const fallback = vi.fn(() => 0);
+      maybe.callOrFallback(maybe.of<number>(null), fn, fallback);
+      expect(fn).not.toHaveBeenCalled();
+      expect(fallback).toHaveBeenCalled();
+      maybe.callOrFallback(maybe.of<number>(undefined), fn, fallback);
+      expect(fn).not.toHaveBeenCalled();
+      expect(fallback).toHaveBeenCalled();
     });
   });
 

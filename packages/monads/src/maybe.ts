@@ -49,6 +49,11 @@ export const maybe = {
     maybe.isPresent(value) ? fn(value) : undefined,
   call: <T, U>(value: Maybe<T>, fn: (value: T) => U): void =>
     void (maybe.isPresent(value) ? fn(value) : undefined),
+  callOrFallback: <T, U>(
+    value: Maybe<T>,
+    fn: (value: T) => U,
+    fallback: () => U,
+  ): U => (maybe.isPresent(value) ? fn(value) : fallback()),
   mapOrElse: <T, U, V>(
     value: Maybe<T>,
     fn: (value: T) => U,
