@@ -166,6 +166,68 @@ describe("maybe utility", () => {
     });
   });
 
+  describe("flatMapOrElse", () => {
+    it("should return the value if present", () => {
+      expect(maybe.flatMapOrElse(5, (x) => maybe.of(x * 2), 0)).toBe(10);
+    });
+
+    it("should return the default value if absent", () => {
+      expect(maybe.flatMapOrElse(null, (x) => maybe.of(x * 2), 0)).toBe(0);
+      expect(maybe.flatMapOrElse(undefined, (x) => maybe.of(x * 2), 0)).toBe(0);
+    });
+
+    it("should return the default value if the mapping function returns an absent value", () => {
+      expect(maybe.flatMapOrElse(5, () => null, 0)).toBe(0);
+      expect(maybe.flatMapOrElse(null, () => undefined, 0)).toBe(0);
+    });
+  });
+
+  describe("flatMapOrMake", () => {
+    it("should return the value if present", () => {
+      expect(
+        maybe.flatMapOrMake(
+          5,
+          (x) => maybe.of(x * 2),
+          () => 0,
+        ),
+      ).toBe(10);
+    });
+
+    it("should return the produced value if absent", () => {
+      expect(
+        maybe.flatMapOrMake(
+          null,
+          (x) => maybe.of(x * 2),
+          () => 0,
+        ),
+      ).toBe(0);
+      expect(
+        maybe.flatMapOrMake(
+          undefined,
+          (x) => maybe.of(x * 2),
+          () => 0,
+        ),
+      ).toBe(0);
+    });
+
+    it("should return the produced value if the mapping function returns an absent value", () => {
+      expect(
+        maybe.flatMapOrMake(
+          5,
+          () => null,
+          () => 0,
+        ),
+      ).toBe(0);
+      expect(
+        maybe.flatMapOrMake(
+          null,
+          () => undefined,
+          () => 0,
+        ),
+      ).toBe(0);
+    });
+  });
+
   describe("filter", () => {
     it("should return the value if it satisfies the predicate", () => {
       expect(maybe.filter(5, (x) => x > 3)).toBe(5);

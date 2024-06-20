@@ -64,6 +64,24 @@ export const maybe = {
     fn: (value: Present<T>) => U,
     make: () => V,
   ) => (maybe.isPresent(value) ? fn(value) : make()),
+  /**
+   * Tries to map the value. If the value is absent or the mapping function returns an absent value,
+   * the default value is returned.
+   */
+  flatMapOrElse: <T, U, V>(
+    value: Maybe<T>,
+    fn: (value: Present<T>) => Maybe<U>,
+    defaultValue: V,
+  ) => maybe.getOrElse(maybe.map(value, fn), defaultValue),
+  /**
+   * Tries to map the value. If the value is absent or the mapping function returns an absent value,
+   * the default value is made.
+   */
+  flatMapOrMake: <T, U, V>(
+    value: Maybe<T>,
+    fn: (value: Present<T>) => Maybe<U>,
+    make: () => V,
+  ) => maybe.getOrElse(maybe.map(value, fn), make()),
   // Simplify filter by removing redundant checks
   filter: <T>(
     value: Maybe<T>,
