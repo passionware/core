@@ -195,9 +195,7 @@ describe("maybe utility", () => {
     });
 
     it("should return the default value if absent", () => {
-      // @ts-expect-error -- testing invalid input
       expect(maybe.filterOrElse(null, (x) => x > 3, 0)).toBe(0);
-      // @ts-expect-error -- testing invalid input
       expect(maybe.filterOrElse(undefined, (x) => x > 3, 0)).toBe(0);
     });
   });
@@ -227,7 +225,6 @@ describe("maybe utility", () => {
       expect(
         maybe.filterOrMake(
           null,
-          // @ts-expect-error -- testing invalid input
           (x) => x > 3,
           () => 0,
         ),
@@ -235,7 +232,6 @@ describe("maybe utility", () => {
       expect(
         maybe.filterOrMake(
           undefined,
-          // @ts-expect-error -- testing invalid input
           (x) => x > 3,
           () => 0,
         ),

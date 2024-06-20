@@ -22,7 +22,7 @@ export const maybe = {
   },
   isAbsent: <T>(value: Maybe<T>): value is Absent => !maybe.isPresent(value),
   journey: <T>(value: Maybe<T>) => ({
-    ifPresent: <U>(fn: (value: T) => U) => ({
+    ifPresent: <U>(fn: (value: Present<T>) => U) => ({
       orElse: <V>(defaultValue: V | (() => V)) =>
         maybe.isPresent(value)
           ? fn(value)
@@ -45,33 +45,39 @@ export const maybe = {
     throw new Error(message);
   },
   // Utilize the ternary operator for a more concise implementation
-  map: <T, U>(value: Maybe<T>, fn: (value: T) => U): Maybe<U> =>
+  map: <T, U>(value: Maybe<T>, fn: (value: Present<T>) => U): Maybe<U> =>
     maybe.isPresent(value) ? fn(value) : undefined,
-  call: <T, U>(value: Maybe<T>, fn: (value: T) => U): void =>
+  call: <T, U>(value: Maybe<T>, fn: (value: Present<T>) => U): void =>
     void (maybe.isPresent(value) ? fn(value) : undefined),
   callOrFallback: <T, U>(
     value: Maybe<T>,
-    fn: (value: T) => U,
+    fn: (value: Present<T>) => U,
     fallback: () => U,
   ): U => (maybe.isPresent(value) ? fn(value) : fallback()),
   mapOrElse: <T, U, V>(
     value: Maybe<T>,
-    fn: (value: T) => U,
+    fn: (value: Present<T>) => U,
     defaultValue: V,
   ) => (maybe.isPresent(value) ? fn(value) : defaultValue),
-  mapOrMake: <T, U, V>(value: Maybe<T>, fn: (value: T) => U, make: () => V) =>
-    maybe.isPresent(value) ? fn(value) : make(),
+  mapOrMake: <T, U, V>(
+    value: Maybe<T>,
+    fn: (value: Present<T>) => U,
+    make: () => V,
+  ) => (maybe.isPresent(value) ? fn(value) : make()),
   // Simplify filter by removing redundant checks
-  filter: <T>(value: Maybe<T>, predicate: (value: T) => boolean): Maybe<T> =>
+  filter: <T>(
+    value: Maybe<T>,
+    predicate: (value: Present<T>) => boolean,
+  ): Maybe<T> =>
     maybe.isPresent(value) && predicate(value) ? value : undefined,
   filterOrElse: <T, U>(
     value: Maybe<T>,
-    predicate: (value: T) => boolean,
+    predicate: (value: Present<T>) => boolean,
     defaultValue: U,
   ) => (maybe.isPresent(value) && predicate(value) ? value : defaultValue),
   filterOrMake: <T, U>(
     value: Maybe<T>,
-    predicate: (value: T) => boolean,
+    predicate: (value: Present<T>) => boolean,
     make: () => U,
   ) => (maybe.isPresent(value) && predicate(value) ? value : make()),
   combine: <T extends MaybesObject>(maybes: T): Maybe<ResultObject<T>> => {
