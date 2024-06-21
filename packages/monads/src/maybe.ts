@@ -64,6 +64,16 @@ export const maybe = {
     fn: (value: Present<T>) => U,
     make: () => V,
   ) => (maybe.isPresent(value) ? fn(value) : make()),
+  mapOrThrow: <T, U>(
+    value: Maybe<T>,
+    fn: (value: Present<T>) => U,
+    message = "Attempted to unwrap an absent value",
+  ): U => {
+    if (maybe.isPresent(value)) {
+      return fn(value);
+    }
+    throw new Error(message);
+  },
   /**
    * Tries to map the value. If the value is absent or the mapping function returns an absent value,
    * the default value is returned.

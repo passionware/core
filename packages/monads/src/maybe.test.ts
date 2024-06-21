@@ -166,6 +166,21 @@ describe("maybe utility", () => {
     });
   });
 
+  describe("mapOrThrow", () => {
+    it("should apply the function to the value if present", () => {
+      expect(maybe.mapOrThrow(5, (x) => x * 2)).toBe(10);
+    });
+
+    it("should throw an error if absent", () => {
+      expect(() =>
+        maybe.mapOrThrow(maybe.of<number>(null), (x) => x * 2),
+      ).toThrowError("Attempted to unwrap an absent value");
+      expect(() =>
+        maybe.mapOrThrow(maybe.of<number>(undefined), (x) => x * 2,'You are wrong!'),
+      ).toThrowError("You are wrong!");
+    });
+  });
+
   describe("flatMapOrElse", () => {
     it("should return the value if present", () => {
       expect(maybe.flatMapOrElse(5, (x) => maybe.of(x * 2), 0)).toBe(10);
