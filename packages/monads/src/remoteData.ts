@@ -169,6 +169,9 @@ export const rd = {
     if (remoteData.status === "success") {
       return remoteData.data;
     }
+    if (remoteData.status === "error") {
+      throw remoteData.error;
+    }
     throw new Error(message);
   },
   tryGet<T>(remoteData: RemoteData<T>): T | undefined {

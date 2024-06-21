@@ -77,6 +77,17 @@ describe("RemoteData Utility", () => {
     expect(() => rd.getOrThrow(errorData)).toThrow();
   });
 
+  it("getOrThrow re-throws error from the state", () => {
+    const pendingData = rd.ofPending();
+    const errorData = rd.ofError(new Error("Test error"));
+    expect(() => rd.getOrThrow(errorData, "Fallback error message")).toThrow(
+      "Test error",
+    );
+    expect(() => rd.getOrThrow(pendingData, "Fallback error message")).toThrow(
+      "Fallback error message",
+    );
+  });
+
   it("mapOrElse maps over success data correctly", () => {
     const successData = rd.of(10);
     const mappedData = rd.mapOrElse(successData, (num) => num * 2, 0);
