@@ -8,6 +8,7 @@
     "ts": "tsc --noEmit"
   },
   "dependencies": {
-    "@passionware/monads": "*"
+    "@passionware/monads": "*",
+    "@passionware/simple-event": "*"
   }
 }
