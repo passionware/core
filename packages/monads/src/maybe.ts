@@ -45,7 +45,11 @@ export const maybe = {
     throw new Error(message);
   },
   // Utilize the ternary operator for a more concise implementation
-  map: <T, U>(value: Maybe<T>, fn: (value: Present<T>) => U): Maybe<U> =>
+  map: <T, U>(
+    value: T,
+    fn: (value: Present<T>) => U,
+  ): T extends Absent ? Maybe<U> : U =>
+    // @ts-expect-error -- this is safe because we are checking for absence
     maybe.isPresent(value) ? fn(value) : undefined,
   call: <T, U>(value: Maybe<T>, fn: (value: Present<T>) => U): void =>
     void (maybe.isPresent(value) ? fn(value) : undefined),
@@ -79,7 +83,7 @@ export const maybe = {
    * the default value is returned.
    */
   flatMapOrElse: <T, U, V>(
-    value: Maybe<T>,
+    value: T,
     fn: (value: Present<T>) => Maybe<U>,
     defaultValue: V,
   ) => maybe.getOrElse(maybe.map(value, fn), defaultValue),
@@ -88,7 +92,7 @@ export const maybe = {
    * the default value is made.
    */
   flatMapOrMake: <T, U, V>(
-    value: Maybe<T>,
+    value: T,
     fn: (value: Present<T>) => Maybe<U>,
     make: () => V,
   ) => maybe.getOrElse(maybe.map(value, fn), make()),

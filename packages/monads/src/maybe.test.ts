@@ -1,5 +1,5 @@
 // maybe.test.ts
-import { describe, expect, it, vi } from "vitest";
+import { assertType, AssertType, describe, expect, it, vi } from "vitest";
 import { maybe } from "./maybe";
 
 // Adjust the import path as necessary
@@ -86,6 +86,13 @@ describe("maybe utility", () => {
       expect(
         maybe.map(maybe.of<number>(undefined), (x) => x * 2),
       ).toBeUndefined();
+    });
+
+    it("it should return the present type if the argument is statically known as present", () => {
+      const value = 5;
+      const result = maybe.map(value, (x) => x * 2);
+      assertType<number>(result);
+      expect(result).toBe(10);
     });
   });
 
@@ -176,7 +183,11 @@ describe("maybe utility", () => {
         maybe.mapOrThrow(maybe.of<number>(null), (x) => x * 2),
       ).toThrowError("Attempted to unwrap an absent value");
       expect(() =>
-        maybe.mapOrThrow(maybe.of<number>(undefined), (x) => x * 2,'You are wrong!'),
+        maybe.mapOrThrow(
+          maybe.of<number>(undefined),
+          (x) => x * 2,
+          "You are wrong!",
+        ),
       ).toThrowError("You are wrong!");
     });
   });
