@@ -24,6 +24,9 @@ export function createWidgetFactory<Config, WidgetOwnProps>(
             "Attempted to use hook outside of the main widget component",
           );
 
+        // Create the component using the factory function and pass it the hooks and props
+        const Component = componentFactory(injectArg(config, useProps));
+
         const Widget: FC<InjectableProps & WidgetOwnProps> = (props) => {
           // Filter out only ignored fields related to the core functionality of the widget
           const passthroughProps = Object.entries(props).reduce(
@@ -36,8 +39,6 @@ export function createWidgetFactory<Config, WidgetOwnProps>(
             {} as WidgetOwnProps & Omit<InjectableProps, IgnoredProps>,
           );
 
-          // Create the component using the factory function and pass it the hooks and props
-          const Component = componentFactory(injectArg(config, useProps));
 
           return (
             <Context.Provider value={maybe.of(props)}>
