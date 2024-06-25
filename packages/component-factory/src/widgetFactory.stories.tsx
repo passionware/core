@@ -1,8 +1,9 @@
+import { rd, RemoteData } from "@passionware/monads";
 import { testQuery } from "@passionware/platform-storybook";
 import { Meta, StoryObj } from "@storybook/react";
-import { rd, RemoteData } from "@passionware/monads";
-import { createWidgetFactory } from "./widgeFactory";
+import { clsx } from "clsx";
 import { useMemo } from "react";
+import { createWidgetFactory } from "./widgeFactory";
 
 interface Order {
   id: string;
@@ -14,7 +15,11 @@ interface Order {
   currency: string;
 }
 
-type WidgetProps = {
+type WidgetOwnProps = {
+  className?: string;
+};
+
+type WidgetInjectableProps = {
   userId: string;
   shouldFail: boolean;
   can: boolean;
@@ -25,15 +30,17 @@ type WidgetConfig = {
   useCan: (action: string, resource: string) => boolean;
 };
 
-const createPaymentWidget = createWidgetFactory<WidgetConfig>(
-  // (hookCreator) => ({ usePayment: hookCreator() }),
+const createPaymentWidget = createWidgetFactory<WidgetConfig, WidgetOwnProps>(
   (config) => {
     return function PaymentWidget(props) {
-      debugger;
+      const { className, ...rest } = props;
       const payment = config.useProduct("1");
       const can = config.useCan("read", "order");
       return (
-        <div {...props} className="bg-white shadow-md rounded-lg p-6">
+        <div
+          {...rest}
+          className={clsx("bg-white shadow-md rounded-lg p-6", className)}
+        >
           {rd
             .journey(payment)
             .wait(
@@ -74,7 +81,7 @@ const createPaymentWidget = createWidgetFactory<WidgetConfig>(
   },
 );
 
-const MockPaymentWidget = createPaymentWidget<WidgetProps>({
+const MockPaymentWidget = createPaymentWidget<WidgetInjectableProps>({
   useProduct: (productId, { userId, shouldFail }) =>
     testQuery.useData(
       testQuery.of(
@@ -97,7 +104,7 @@ const MockPaymentWidget = createPaymentWidget<WidgetProps>({
       ),
     ),
   useCan: (action, resource, { can }) => can,
-}).withIsolatedProps(["userId"]);
+}).withIsolatedProps(["userId", "can", "shouldFail"]);
 
 const meta = {
   component: MockPaymentWidget,
@@ -130,5 +137,12 @@ export const WithCannot = {
   args: {
     ...AnotherUser.args,
     can: false,
+  },
+} satisfies Story;
+
+export const WithSomeClassNames = {
+  args: {
+    ...WithCannot.args,
+    className: "!bg-violet-50 !shadow-none !border !border-purple-500",
   },
 } satisfies Story;

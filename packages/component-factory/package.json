@@ -13,5 +13,8 @@
     "@passionware/platform-ts": "*",
     "@passionware/platform-storybook": "*",
     "merge-props": "^6.0.0"
+  },
+  "devDependencies": {
+    "clsx": "^2.1.1"
   }
 }
