@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@passionware/platform-ts": "*",
+    "@passionware/platform-storybook": "*",
     "merge-props": "^6.0.0"
   }
 }
