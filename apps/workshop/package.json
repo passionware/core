@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "storybook dev --port 6100",
-    "build": "storybook build"
+    "build": "storybook build",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "react": "^18.2.0",
