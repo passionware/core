@@ -14,3 +14,24 @@ export function useIdPool<KeySpec extends object>(fieldsShape: KeySpec) {
     );
   }, [base]);
 }
+
+type ExtractKeys<T> = T extends string[]
+  ? T[number]
+  : T extends object
+    ? keyof T & string
+    : T & string;
+
+export function useDynamicIdPool<T>(): Record<ExtractKeys<T>, string> {
+  const base = useId();
+
+  const proxy = new Proxy(
+    {},
+    {
+      get(target: any, prop: ExtractKeys<T>) {
+        return `${base}-${prop}`;
+      },
+    },
+  );
+
+  return useMemo(() => proxy, [base]);
+}
