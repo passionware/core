@@ -5,11 +5,11 @@ import { describe, expect, it, vi } from "vitest";
 import { testQuery } from "./useTestQuery";
 
 describe("useTestQuery", () => {
-  describe("map", () => {
+  describe("useMappedData", () => {
     it("should map the data", () => {
       const mapper = vi.fn((x: number, num: number) => (x + 1) * num);
       const { result, rerender } = renderHook(
-        (num) => testQuery.map(testQuery.of(rd.of(1), 0), mapper, [num]),
+        (num) => testQuery.useMappedData(testQuery.of(rd.of(1), 0), mapper, [num]),
         { initialProps: 10 },
       );
       expect(result.current).toEqual(rd.of(20));

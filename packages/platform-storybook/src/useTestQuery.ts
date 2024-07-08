@@ -44,7 +44,7 @@ export const testQuery = {
 
     return state;
   },
-  map: <T, V, D extends DependencyList>(
+  useMappedData: <T, V, D extends DependencyList>(
     query: TestQuery<T>,
     producer: (data: T, ...deps: D) => V,
     deps: D,
