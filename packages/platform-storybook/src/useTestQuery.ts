@@ -1,5 +1,5 @@
 import { rd, RemoteData } from "@passionware/monads";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type DependencyList } from "react";
 
 export type TestQuery<T> = {
   remoteData: RemoteData<T>;
@@ -44,4 +44,20 @@ export const testQuery = {
 
     return state;
   },
+  map: <T, V, D extends DependencyList>(
+    query: TestQuery<T>,
+    producer: (data: T, ...deps: D) => V,
+    deps: D,
+  ) =>
+    testQuery.useData(
+      testQuery.of(
+        rd.useMemo(
+          query.remoteData,
+          (remoteData, ...deps) =>
+            rd.map(remoteData, (data) => producer(data, ...deps)),
+          deps,
+        ),
+        query.delay,
+      ),
+    ),
 };
