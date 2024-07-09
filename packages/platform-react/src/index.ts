@@ -7,3 +7,4 @@ export {
   type SkipWrapNode,
 } from "./skipWrap";
 export * from "./useIdPool";
+export * from "./glueNodes";
