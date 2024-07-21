@@ -380,16 +380,25 @@ export const rd = {
   useMemo: <T, V, D extends DependencyList>(
     data: RemoteData<T>,
     producer: (data: RemoteData<T>, ...deps: D) => V,
-    deps: D,
+    deps: D = [] as unknown as D, // todo try with function overload in TypeScript
   ) => {
     const memoFields = [
       data.status, // we should refresh if status changes
       rd.tryGet(data), // we should refresh if data changes
       "error" in data ? data.error : undefined, // we should refresh if error changes
     ];
-
     return useMemo(() => producer(data, ...deps), [...memoFields, ...deps]);
   },
+  useMemoMap: <T, V, D extends DependencyList>(
+    data: RemoteData<T>,
+    mapper: (data: T, ...deps: D) => V,
+    deps: D = [] as unknown as D, // todo try with function overload in TypeScript
+  ) =>
+    rd.useMemo(
+      data,
+      (data, ...deps) => rd.map(data, (data) => mapper(data, ...deps)),
+      deps ?? [],
+    ),
   combine<T extends Record<string, RemoteData<any>>>(
     obj: T,
   ): RemoteData<{
