@@ -30,3 +30,12 @@ export function v4s(seed?: string): string {
   // Generate a UUID using the custom RNG
   return v4({ random: customRNG() });
 }
+
+export function createSeededV4(seed: string) {
+  let lastSeed = seed;
+  return () => {
+    const next = v4s(lastSeed);
+    lastSeed = next;
+    return next;
+  };
+}
