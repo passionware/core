@@ -2,6 +2,7 @@
   "name": "@passionware/monads",
   "version": "0.0.0",
   "main": "./src/index.ts",
+  "type": "module",
   "scripts": {
     "dev": "npm run build -- --watch",
     "test": "vitest run",

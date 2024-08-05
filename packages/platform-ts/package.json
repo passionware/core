@@ -2,6 +2,7 @@
   "name": "@passionware/platform-ts",
   "version": "0.0.0",
   "main": "./src/index.ts",
+  "type": "module",
   "scripts": {
     "lint": "echo 'Add lint script here'",
     "ts": "tsc --noEmit"
