@@ -13,7 +13,7 @@ import {
   useListNavigation,
   useRole,
 } from "@floating-ui/react";
-import { ReactNode, useRef, useState } from "react";
+import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { Item } from "./compound/Item";
 import { Popover } from "./compound/Popover";
 import { Search } from "./compound/Search";
@@ -65,6 +65,12 @@ function DropdownMenuParent({
     whileElementsMounted: autoUpdate,
     ...floatingOptions,
   });
+
+  useLayoutEffect(() => {
+    setActiveIndex(maybe.ofAbsent());
+    setDefaultSelectedIndex(maybe.ofAbsent());
+    setIsOpen(false);
+  }, [disabled]);
 
   const interactions = useInteractions([
     useClick(floating.context),
