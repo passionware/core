@@ -1,8 +1,6 @@
 import { IconChat, IconPulse, IconWand } from "@passionware/icons";
 import { rd } from "@passionware/monads";
-import {
-  testQuery,
-} from "@passionware/platform-storybook";
+import { testQuery } from "@passionware/platform-storybook";
 import { createMatcher } from "@passionware/query-toolkit";
 import { Meta, StoryObj } from "@storybook/react";
 import { useMemo, useState } from "react";
@@ -470,3 +468,11 @@ function RadioButtonOption({
     </DropdownMenu.Item>
   );
 }
+
+export const Disabled = {
+  ...Default,
+  args: {
+    ...Default.args,
+    disabled: true,
+  },
+};

@@ -13,6 +13,7 @@ export interface PopoverProps {
 export function Popover(props: PopoverProps) {
   const internal = useDropdownMenuInternalContext();
   return (
+    !internal.disabled &&
     internal.isOpen && (
       <FloatingFocusManager context={internal.floating.context}>
         <FloatingList elementsRef={internal.listRef}>

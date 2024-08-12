@@ -6,6 +6,7 @@ export interface TriggerProps {
 }
 export function Trigger(props: TriggerProps) {
   const internal = useDropdownMenuInternalContext();
+  if (internal.disabled) return props.children;
 
   return cloneElement(
     props.children,

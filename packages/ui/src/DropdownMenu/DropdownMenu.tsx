@@ -30,11 +30,13 @@ export interface DropdownMenuProps {
   onSelect?: (value: string) => void;
   placement?: Placement;
   floatingOptions?: Partial<Omit<UseFloatingOptions, "open">>;
+  disabled?: boolean;
 }
 
 function DropdownMenuParent({
   children,
   onSelect,
+  disabled = false,
   placement = "bottom-start",
   floatingOptions: { onOpenChange, ...floatingOptions } = {},
 }: DropdownMenuProps) {
@@ -128,6 +130,7 @@ function DropdownMenuParent({
         onEnter: handleEnter,
         onCancel: () => setIsOpen(false),
         query,
+        disabled,
       }}
     >
       {children}

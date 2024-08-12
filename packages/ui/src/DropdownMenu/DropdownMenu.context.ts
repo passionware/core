@@ -10,6 +10,7 @@ import {
 
 export interface DropdownMenuContext {
   itemProps: Record<string, { onClick?: () => void; closeOnSelect?: boolean }>;
+  disabled: boolean;
   onSelect: (id: string) => void;
   onCancel: () => void;
   onDefaultSelectedResolve: (index: number) => void;
