@@ -9,6 +9,7 @@ export function createStrictMap<K, V>(map: Map<K, V>, errorMessage: string) {
       }
       return value;
     },
+    tryGet: map.get.bind(map),
     set: map.set.bind(map),
     has: map.has.bind(map),
     forEach: map.forEach.bind(map),
