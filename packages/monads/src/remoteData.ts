@@ -338,6 +338,26 @@ export const rd = {
     }
     return lastData;
   },
+  useEffect: <T>(
+    data: RemoteData<T>,
+    effect: (
+      data: RemoteData<T>,
+      prevRemoteData: RemoteData<T>,
+    ) => void | (() => void),
+  ) => {
+    const lastRemoteDataRef = useRef(data);
+
+    useEffect(() => {
+      const cleanup = effect(data, lastRemoteDataRef.current);
+      lastRemoteDataRef.current = data;
+      return cleanup;
+    }, [
+      data.status,
+      rd.tryGet(data),
+      rd.tryGetError(data),
+      rd.isPlaceholderData(data),
+    ]);
+  },
   useDataEffect: <T>(
     data: RemoteData<T>,
     effect: (data: T, prevRemoteData: RemoteData<T>) => void | (() => void),

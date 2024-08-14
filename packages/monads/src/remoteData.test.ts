@@ -480,6 +480,82 @@ describe("RemoteData Utility", () => {
     });
   });
 
+  describe("useEffect", () => {
+    it("should call the effect when the state changes", () => {
+      const effect = vi.fn();
+      const screen = renderHook((p) => rd.useEffect(p.remoteData, effect), {
+        initialProps: {
+          remoteData: rd.widen(rd.of(1)),
+        },
+      });
+      expect(effect).toHaveBeenCalledTimes(1);
+      screen.rerender({ remoteData: rd.of(2) });
+      expect(effect).toHaveBeenCalledTimes(2);
+      screen.rerender({ remoteData: rd.ofPending() });
+      expect(effect).toHaveBeenCalledTimes(3);
+      screen.rerender({ remoteData: rd.ofError(new Error("Test error")) });
+      expect(effect).toHaveBeenCalledTimes(4);
+      screen.rerender({ remoteData: rd.of(2) });
+      expect(effect).toHaveBeenCalledTimes(5);
+      screen.rerender({ remoteData: rd.of(2) });
+      expect(effect).toHaveBeenCalledTimes(5);
+      screen.rerender({ remoteData: rd.of(3) });
+      expect(effect).toHaveBeenCalledTimes(6);
+    });
+
+    it("should handle transition from initial load to success correctly", () => {
+      const effect = vi.fn();
+      const screen = renderHook((p) => rd.useEffect(p.remoteData, effect), {
+        initialProps: {
+          remoteData: rd.widen(rd.ofIdle()),
+        },
+      });
+      expect(effect).toHaveBeenCalledTimes(1);
+      screen.rerender({ remoteData: rd.of(1) });
+      expect(effect).toHaveBeenCalledTimes(2); // Check if it correctly handles the initial transition to success
+    });
+
+    it("should call the effect when transitioning from success to different error states", () => {
+      const effect = vi.fn();
+      const screen = renderHook((p) => rd.useEffect(p.remoteData, effect), {
+        initialProps: {
+          remoteData: rd.widen(rd.of(1)),
+        },
+      });
+      expect(effect).toHaveBeenCalledTimes(1);
+      screen.rerender({ remoteData: rd.ofError(new Error("Test error 1")) });
+      expect(effect).toHaveBeenCalledTimes(2);
+      screen.rerender({ remoteData: rd.ofError(new Error("Test error 2")) });
+      expect(effect).toHaveBeenCalledTimes(3);
+    });
+
+    it("should call the effect when transitioning between idle and pending states", () => {
+      const effect = vi.fn();
+      const screen = renderHook((p) => rd.useEffect(p.remoteData, effect), {
+        initialProps: {
+          remoteData: rd.widen(rd.ofIdle()),
+        },
+      });
+      expect(effect).toHaveBeenCalledTimes(1);
+      screen.rerender({ remoteData: rd.ofPending() });
+      expect(effect).toHaveBeenCalledTimes(2);
+      screen.rerender({ remoteData: rd.ofIdle() });
+      expect(effect).toHaveBeenCalledTimes(3);
+    });
+
+    it("should perform cleanup when the component unmounts", () => {
+      const cleanup = vi.fn();
+      const effect = vi.fn(() => cleanup);
+      const screen = renderHook((p) => rd.useEffect(p.remoteData, effect), {
+        initialProps: {
+          remoteData: rd.of(1),
+        },
+      });
+      screen.unmount();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe("useDataMemo", () => {
     it("returns the same reference when dependencies do not change", () => {
       const initialValue = { data: 10 };
