@@ -42,6 +42,32 @@ export class MappingError extends Error {
 
   // You can add additional methods here for error handling, like logging or categorizing the error
 }
+
+export class RemoteDataGetError extends Error {
+  originalError: unknown;
+
+  constructor(originalError: unknown) {
+    // Check if the original error is an instance of Error and use its message
+    const message =
+      originalError instanceof Error ? originalError.message : "unknown error";
+    const errorMessage = `Error while getting RemoteData: ${message}`;
+
+    // Call the super constructor with the custom error message
+    super(errorMessage);
+
+    // If available, attach the stack trace from the original error
+    if (originalError instanceof Error && originalError.stack) {
+      this.stack = `RemoteDataGetError: ${errorMessage}\nOriginal stack:\n${originalError.stack}`;
+    }
+
+    this.originalError = originalError;
+    this.name = "RemoteDataGetError"; // Setting the error name is good practice
+
+    // Ensure the instance appears to be of type RemoteDataGetError
+    Object.setPrototypeOf(this, RemoteDataGetError.prototype);
+  }
+}
+
 export const rd = {
   // consider map catching mapping errors and replacing them with a RemoteDataError of MappingError
   // we can also add unSafeMap that throws the error as this one currently does
@@ -170,7 +196,7 @@ export const rd = {
       return remoteData.data;
     }
     if (remoteData.status === "error") {
-      throw remoteData.error;
+      throw new RemoteDataGetError(remoteData.error);
     }
     throw new Error(message);
   },
