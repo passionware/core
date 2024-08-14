@@ -46,10 +46,8 @@ export class MappingError extends Error {
 export class RemoteDataGetError extends Error {
   originalError: unknown;
 
-  constructor(originalError: unknown) {
+  constructor(message: string, originalError: unknown) {
     // Check if the original error is an instance of Error and use its message
-    const message =
-      originalError instanceof Error ? originalError.message : "unknown error";
     const errorMessage = `Error while getting RemoteData: ${message}`;
 
     // Call the super constructor with the custom error message
@@ -196,7 +194,7 @@ export const rd = {
       return remoteData.data;
     }
     if (remoteData.status === "error") {
-      throw new RemoteDataGetError(remoteData.error);
+      throw new RemoteDataGetError(message, remoteData.error);
     }
     throw new Error(message);
   },
