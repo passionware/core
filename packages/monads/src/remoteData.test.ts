@@ -81,7 +81,7 @@ describe("RemoteData Utility", () => {
     const pendingData = rd.ofPending();
     const errorData = rd.ofError(new Error("Test error"));
     expect(() => rd.getOrThrow(errorData, "Fallback error message")).toThrow(
-      "Test error",
+      "Fallback error message: Test error",
     );
     expect(() => rd.getOrThrow(pendingData, "Fallback error message")).toThrow(
       "Fallback error message",
