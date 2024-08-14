@@ -30,7 +30,7 @@ export class MappingError extends Error {
 
     // If available, attach the stack trace from the original error
     if (originalError instanceof Error && originalError.stack) {
-      this.stack = `MappingError: ${errorMessage}\nOriginal stack:\n${originalError.stack}`;
+      this.stack += `\nMappingError: ${errorMessage}\nOriginal stack:\n${originalError.stack}`;
     }
 
     this.originalError = originalError;
@@ -57,7 +57,7 @@ export class RemoteDataGetError extends Error {
 
     // If available, attach the stack trace from the original error
     if (originalError instanceof Error && originalError.stack) {
-      this.stack = `RemoteDataGetError: ${errorMessage}\nOriginal stack:\n${originalError.stack}`;
+      this.stack += `\nRemoteDataGetError: ${errorMessage}\nOriginal stack:\n${originalError.stack}`;
     }
 
     this.originalError = originalError;
