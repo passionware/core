@@ -24,6 +24,14 @@ describe("useDynamicIdPool", () => {
     const baseIdRegex = /-anyKey$/;
     expect(result.current.anyKey).toMatch(baseIdRegex);
   });
+
+  it("should work with deep keys", () => {
+    const { result } = renderHook(() =>
+      useDynamicIdPool<{ foo: { bar: string } }>(),
+    );
+    expect(result.current["foo.bar"]).toMatch(/-foo.bar$/);
+    expect(result.current["foo"]).toMatch(/-foo$/);
+  });
 });
 
 describe("useIdPool", () => {

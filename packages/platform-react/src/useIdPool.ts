@@ -1,3 +1,4 @@
+import { KeysAsDotNotation } from "deep-utility-types";
 import { useId, useMemo } from "react";
 
 export function useIdPool<KeySpec extends object>(fieldsShape: KeySpec) {
@@ -15,11 +16,7 @@ export function useIdPool<KeySpec extends object>(fieldsShape: KeySpec) {
   }, [base]);
 }
 
-type ExtractKeys<T> = T extends string[]
-  ? T[number]
-  : T extends object
-    ? keyof T & string
-    : T & string;
+type ExtractKeys<T> =KeysAsDotNotation<T>;
 
 export function useDynamicIdPool<T>(): Record<ExtractKeys<T>, string> {
   const base = useId();
