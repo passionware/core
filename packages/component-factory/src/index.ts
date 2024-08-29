@@ -1,2 +1,2 @@
 export { cfe, cf } from "./componentFactory";
-export { createWidgetFactory } from "./widgeFactory";
+export { createWidgetFactory, widgetBuilder } from "./widgeFactory";

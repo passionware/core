@@ -1,7 +1,10 @@
 import { Maybe, maybe } from "@passionware/monads";
-import { createContext, FC, useContext } from "react";
+import { ComponentType, createContext, FC, useContext } from "react";
 import { EnhanceWithHook, injectArg } from "./widgetFactory.types";
 
+/**
+ * @deprecated use widgetBuilder instead
+ */
 export function createWidgetFactory<Config, WidgetOwnProps>(
   componentFactory: (config: Config) => FC<WidgetOwnProps>,
 ) {
@@ -39,7 +42,6 @@ export function createWidgetFactory<Config, WidgetOwnProps>(
             {} as WidgetOwnProps & Omit<InjectableProps, IgnoredProps>,
           );
 
-
           return (
             <Context.Provider value={maybe.of(props)}>
               <Component {...passthroughProps} />
@@ -52,3 +54,52 @@ export function createWidgetFactory<Config, WidgetOwnProps>(
     };
   };
 }
+
+function createBuilder<
+  WidgetInputProps extends object,
+  WidgetOutputProps extends object,
+>(passProps: (input: WidgetInputProps) => WidgetOutputProps) {
+  return (
+    creator: (
+      useProps: () => WidgetInputProps,
+      getProps: () => WidgetInputProps,
+    ) => ComponentType<WidgetOutputProps>,
+  ) => {
+    const ctx = createContext<Maybe<WidgetInputProps>>(maybe.ofAbsent());
+    const useProps = () =>
+      maybe.getOrThrow(
+        useContext(ctx),
+        "Attempted to use hook outside of the main widget component",
+      );
+    let latestProps: WidgetInputProps;
+    // todo in the future we could just make props a signal
+    const Component = creator(useProps, () => latestProps);
+    return (props: WidgetInputProps) => {
+      latestProps = props;
+      return (
+        <ctx.Provider value={maybe.of(props)}>
+          <Component {...passProps(props)} />
+        </ctx.Provider>
+      );
+    };
+  };
+}
+
+export const widgetBuilder = {
+  takeProps: <WidgetInputProps extends object>() => {
+    return {
+      noPassProps: () => {
+        return {
+          build: createBuilder(() => ({})),
+        };
+      },
+      passProps: <WidgetOutputProps extends object>(
+        passProps: (input: WidgetInputProps) => WidgetOutputProps,
+      ) => {
+        return {
+          build: createBuilder(passProps),
+        };
+      },
+    };
+  },
+};
