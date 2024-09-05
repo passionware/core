@@ -90,7 +90,7 @@ export const widgetBuilder = {
     return {
       noPassProps: () => {
         return {
-          build: createBuilder(() => ({})),
+          build: createBuilder<WidgetInputProps, {}>(() => ({})),
         };
       },
       passProps: <WidgetOutputProps extends object>(
