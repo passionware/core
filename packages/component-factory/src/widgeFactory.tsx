@@ -1,5 +1,5 @@
 import { Maybe, maybe } from "@passionware/monads";
-import { ComponentType, createContext, FC, useContext } from "react";
+import { ComponentType, createContext, FC, useContext, Context } from "react";
 import { EnhanceWithHook, injectArg } from "./widgetFactory.types";
 
 /**
@@ -63,6 +63,7 @@ function createBuilder<
     creator: (
       useProps: () => WidgetInputProps,
       getProps: () => WidgetInputProps,
+      PropsContext: Context<Maybe<WidgetInputProps>>,
     ) => ComponentType<WidgetOutputProps>,
   ) => {
     const ctx = createContext<Maybe<WidgetInputProps>>(maybe.ofAbsent());
@@ -73,7 +74,7 @@ function createBuilder<
       );
     let latestProps: WidgetInputProps;
     // todo in the future we could just make props a signal
-    const Component = creator(useProps, () => latestProps);
+    const Component = creator(useProps, () => latestProps, ctx);
     return (props: WidgetInputProps) => {
       latestProps = props;
       return (
