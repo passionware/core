@@ -32,6 +32,15 @@ describe("useDynamicIdPool", () => {
     expect(result.current["foo.bar"]).toMatch(/-foo.bar$/);
     expect(result.current["foo"]).toMatch(/-foo$/);
   });
+
+  it("should work with string literal", () => {
+    const { result } = renderHook(() =>
+      useDynamicIdPool<"alpha" | "beta" | "gam.ma">(),
+    );
+    expect(result.current["alpha"]).toMatch(/-alpha$/);
+    expect(result.current["beta"]).toMatch(/-beta$/);
+    expect(result.current["gam.ma"]).toMatch(/-gam.ma$/);
+  });
 });
 
 describe("useIdPool", () => {

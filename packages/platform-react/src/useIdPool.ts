@@ -16,15 +16,21 @@ export function useIdPool<KeySpec extends object>(fieldsShape: KeySpec) {
   }, [base]);
 }
 
-type ExtractKeys<T> =KeysAsDotNotation<T>;
+type SpecToPool<T> = {
+  [K in T extends string ? T : KeysAsDotNotation<T>]: string;
+};
 
-export function useDynamicIdPool<T>(): Record<ExtractKeys<T>, string> {
+type SpecToPaths<T> = [T] extends [string] ? T : KeysAsDotNotation<T>;
+
+declare const specToPool: SpecToPool<"amma" | "bemma">;
+
+export function useDynamicIdPool<T>(): SpecToPool<T> {
   const base = useId();
 
   const proxy = new Proxy(
     {},
     {
-      get(target: any, prop: ExtractKeys<T>) {
+      get(target: any, prop: SpecToPaths<T>) {
         return `${base}-${prop}`;
       },
     },
