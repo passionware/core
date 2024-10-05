@@ -127,4 +127,9 @@ export const maybe = {
     }
     return result as ResultObject<T>;
   },
+  /**
+   * Returns the value if the condition is true, otherwise returns Absent.
+   */
+  takeIf: <T>(condition: boolean, value: T) =>
+    condition ? value : maybe.ofAbsent(),
 };
