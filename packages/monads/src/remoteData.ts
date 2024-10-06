@@ -337,6 +337,9 @@ export const rd = {
   ): remoteData is Extract<RemoteData<T>, { isPlaceholderData: true }> {
     return remoteData.status === "success" && remoteData.isPlaceholderData;
   },
+  isFetching<T>(remoteData: RemoteData<T>): boolean {
+    return "isFetching" in remoteData && remoteData.isFetching;
+  },
   useLast<T>(remoteData: RemoteData<T>): RemoteData<T> {
     const lastNotAwaitingData =
       useLast(remoteData, !rd.isAwaiting(remoteData)) ?? remoteData;
@@ -430,6 +433,8 @@ export const rd = {
   ) => {
     const memoFields = [
       data.status, // we should refresh if status changes
+      rd.isPlaceholderData(data), // we should refresh if placeholder data changes
+      rd.isFetching(data), // we should refresh if fetching changes
       rd.tryGet(data), // we should refresh if data changes
       "error" in data ? data.error : undefined, // we should refresh if error changes
     ];

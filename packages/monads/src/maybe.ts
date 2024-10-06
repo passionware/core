@@ -128,6 +128,7 @@ export const maybe = {
     return result as ResultObject<T>;
   },
   /**
+   * @experimental probably not that useful due to limited inference support
    * Returns the value if the condition is true, otherwise returns Absent.
    */
   takeIf: <T>(condition: boolean, value: T) =>
