@@ -440,6 +440,12 @@ export const rd = {
     ];
     return useMemo(() => producer(data, ...deps), [...memoFields, ...deps]);
   },
+  /**
+   * It ensures stable reference to RemoteData.
+   * It's like rd.useMemo, but it does not map anything.
+   * @param data
+   */
+  useStable: <T>(data: RemoteData<T>) => rd.useMemoMap(data, (data) => data),
   useMemoMap: <T, V, D extends DependencyList>(
     data: RemoteData<T>,
     mapper: (data: T, ...deps: D) => V,
