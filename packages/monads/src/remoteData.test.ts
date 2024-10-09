@@ -300,6 +300,60 @@ describe("RemoteData Utility", () => {
         .done(() => "Success");
       expect(result).toBe("Loading");
     });
+
+    describe("journey get function", () => {
+      it("handles the success state with get", () => {
+        const successData = rd.of("success");
+        const result = rd
+          .journey(successData)
+          .wait(() => "Loading")
+          .catch(() => "Error")
+          .get();
+        expect(result).toBe("success");
+      });
+
+      it("handles the error state with get", () => {
+        const errorData = rd.ofError(new Error("Test error"));
+        const result = rd
+          .journey(errorData)
+          .wait(() => "Loading")
+          .catch((e) => `Error: ${e.message}`)
+          .get();
+        expect(result).toBe("Error: Test error");
+      });
+
+      it("handles the pending state with get", () => {
+        const pendingData = rd.ofPending();
+        const result = rd
+          .journey(pendingData)
+          .wait(() => "Loading")
+          .catch(() => "Error")
+          .get();
+        expect(result).toBe("Loading");
+      });
+    });
+
+    describe("journey map function", () => {
+      it("maps the success data correctly", () => {
+        const successData = rd.of(5);
+        const result = rd
+          .journey(successData)
+          .wait(() => "Loading")
+          .catch(() => "Error")
+          .map((data) => data * 2);
+        expect(result).toBe(10);
+      });
+
+      it("handles the error state with map", () => {
+        const errorData = rd.ofError(new Error("Test error"));
+        const result = rd
+          .journey(errorData)
+          .wait(() => "Loading")
+          .catch((e) => `Error: ${e.message}`)
+          .map(() => 42);
+        expect(result).toBe("Error: Test error");
+      });
+    });
   });
 
   describe("fullJourney Function", () => {
@@ -345,6 +399,54 @@ describe("RemoteData Utility", () => {
         .catch(() => "Error")
         .done(() => "Success");
       expect(result).toBe("Initial");
+    });
+
+    describe("fullJourney get function", () => {
+      it("handles the success state with get", () => {
+        const successData = rd.of("success");
+        const result = rd
+          .fullJourney(successData)
+          .initially(() => "Initial")
+          .wait(() => "Loading")
+          .catch(() => "Error")
+          .get();
+        expect(result).toBe("success");
+      });
+
+      it("handles the error state with get", () => {
+        const errorData = rd.ofError(new Error("Test error"));
+        const result = rd
+          .fullJourney(errorData)
+          .initially(() => "Initial")
+          .wait(() => "Loading")
+          .catch((e) => `Error: ${e.message}`)
+          .get();
+        expect(result).toBe("Error: Test error");
+      });
+    });
+
+    describe("fullJourney map function", () => {
+      it("maps the success data correctly", () => {
+        const successData = rd.of(5);
+        const result = rd
+          .fullJourney(successData)
+          .initially(() => "Initial")
+          .wait(() => "Loading")
+          .catch(() => "Error")
+          .map((data) => data * 2);
+        expect(result).toBe(10);
+      });
+
+      it("handles the error state with map", () => {
+        const errorData = rd.ofError(new Error("Test error"));
+        const result = rd
+          .fullJourney(errorData)
+          .initially(() => "Initial")
+          .wait(() => "Loading")
+          .catch((e) => `Error: ${e.message}`)
+          .map(() => 42);
+        expect(result).toBe("Error: Test error");
+      });
     });
   });
 

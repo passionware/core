@@ -220,6 +220,9 @@ export const rd = {
     return {
       wait: <A>(pendingRenderer: NoFunction<A> | (() => A)) => ({
         catch: <B>(errorRenderer: (error: Error) => B) => ({
+          /**
+           * @deprecated use map or get
+           */
           done: <C>(successRenderer: (data: T) => C) => {
             switch (remote.status) {
               case "idle":
@@ -233,6 +236,32 @@ export const rd = {
                 return successRenderer(remote.data);
             }
           },
+          map: <C>(successRenderer: (data: T) => C) => {
+            switch (remote.status) {
+              case "idle":
+              case "pending":
+                return isFunction(pendingRenderer)
+                  ? (pendingRenderer() as A)
+                  : pendingRenderer;
+              case "error":
+                return errorRenderer(remote.error);
+              case "success":
+                return successRenderer(remote.data);
+            }
+          },
+          get: () => {
+            switch (remote.status) {
+              case "idle":
+              case "pending":
+                return isFunction(pendingRenderer)
+                  ? (pendingRenderer() as A)
+                  : pendingRenderer;
+              case "error":
+                return errorRenderer(remote.error);
+              case "success":
+                return remote.data;
+            }
+          },
         }),
       }),
     };
@@ -242,6 +271,9 @@ export const rd = {
       initially: <A>(initialRenderer: NoFunction<A> | (() => A)) => ({
         wait: <B>(pendingRenderer: NoFunction<B> | (() => B)) => ({
           catch: <C>(errorRenderer: (error: Error) => C) => ({
+            /**
+             * @deprecated use map or get
+             */
             done: <D>(successRenderer: (data: T) => D) => {
               switch (remote.status) {
                 case "idle":
@@ -256,6 +288,38 @@ export const rd = {
                   return errorRenderer(remote.error);
                 case "success":
                   return successRenderer(remote.data);
+              }
+            },
+            map: <D>(successRenderer: (data: T) => D) => {
+              switch (remote.status) {
+                case "idle":
+                  return isFunction(initialRenderer)
+                    ? (initialRenderer() as A)
+                    : initialRenderer;
+                case "pending":
+                  return isFunction(pendingRenderer)
+                    ? (pendingRenderer() as B)
+                    : pendingRenderer;
+                case "error":
+                  return errorRenderer(remote.error);
+                case "success":
+                  return successRenderer(remote.data);
+              }
+            },
+            get: () => {
+              switch (remote.status) {
+                case "idle":
+                  return isFunction(initialRenderer)
+                    ? (initialRenderer() as A)
+                    : initialRenderer;
+                case "pending":
+                  return isFunction(pendingRenderer)
+                    ? (pendingRenderer() as B)
+                    : pendingRenderer;
+                case "error":
+                  return errorRenderer(remote.error);
+                case "success":
+                  return remote.data;
               }
             },
           }),
