@@ -1,5 +1,6 @@
 import { type DependencyList, useEffect, useMemo, useRef } from "react";
 import useLast from "use-last";
+import { maybe, Maybe } from "./maybe";
 
 type RemoteDataIdle = { status: "idle" };
 type RemoteDataPending = { status: "pending"; isFetching: boolean };
@@ -352,6 +353,16 @@ export const rd = {
       isPlaceholderData: false,
     };
   },
+  fromMaybe: <T extends Maybe<unknown>>(
+    data: T,
+    error: Error | (() => Error) = () =>
+      new Error("Expected value to be present"),
+  ) => {
+    if (maybe.isPresent(data)) {
+      return rd.of(data);
+    }
+    return rd.ofError(typeof error === "function" ? error() : error);
+  },
   /**
    * Widen specific RemoteData to a RemoteData
    * @param remoteData
@@ -491,6 +502,7 @@ export const rd = {
     }, []);
   },
   useMemo: <T, V, D extends DependencyList>(
+    // todo useMemo shuold accept also an array to memoize result based on all remote datas all their states
     data: RemoteData<T>,
     producer: (data: RemoteData<T>, ...deps: D) => V,
     deps: D = [] as unknown as D, // todo try with function overload in TypeScript

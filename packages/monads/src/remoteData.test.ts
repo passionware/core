@@ -1,6 +1,7 @@
 // @jest-environment jsdom
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { maybe } from "./maybe";
 import { MappingError, rd, RemoteCombinedError } from "./remoteData";
 
 describe("RemoteData Utility", () => {
@@ -760,6 +761,34 @@ describe("RemoteData Utility", () => {
 
       rerender(rd.of(2));
       expect(result.current).toEqual(rd.of(2));
+    });
+  });
+
+  describe("fromMaybe", () => {
+    it("should convert present maybe to success", () => {
+      const x = maybe.of(10);
+      expect(rd.fromMaybe(x)).toEqual(rd.of(10));
+    });
+
+    it("should convert absent maybe to error", () => {
+      const x = maybe.ofAbsent();
+      expect(rd.fromMaybe(x)).toEqual(
+        rd.ofError(new Error("Expected value to be present")),
+      );
+    });
+
+    it("should convert absent maybe to error with custom message", () => {
+      const x = maybe.ofAbsent();
+      expect(rd.fromMaybe(x, new Error("Custom message"))).toEqual(
+        rd.ofError(new Error("Custom message")),
+      );
+    });
+
+    it("should convert absent maybe to error with custom message function", () => {
+      const x = maybe.ofAbsent();
+      expect(rd.fromMaybe(x, () => new Error("Custom message"))).toEqual(
+        rd.ofError(new Error("Custom message")),
+      );
     });
   });
 });
