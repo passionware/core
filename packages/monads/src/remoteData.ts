@@ -150,6 +150,45 @@ export const rd = {
         return f(remoteData.data);
     }
   },
+  /**
+   * Safely flat maps over the success data of a RemoteData and returns a new RemoteData.
+   * If the mapping function throws an error, it catches the error and returns a RemoteDataError.
+   */
+  flatMap<T, U>(
+    remoteData: RemoteData<T>,
+    f: (data: T) => RemoteData<U>,
+  ): RemoteData<U> {
+    switch (remoteData.status) {
+      case "idle":
+      case "pending":
+      case "error":
+        return remoteData;
+      case "success":
+        try {
+          return f(remoteData.data);
+        } catch (error) {
+          return rd.ofError(new MappingError(error));
+        }
+    }
+  },
+
+  /**
+   * Unsafe version of flatMap that throws an error if the mapping function fails.
+   * Use this if you want to propagate the error directly instead of returning a RemoteDataError.
+   */
+  unsafeFlatMap<T, U>(
+    remoteData: RemoteData<T>,
+    f: (data: T) => RemoteData<U>,
+  ): RemoteData<U> {
+    switch (remoteData.status) {
+      case "idle":
+      case "pending":
+      case "error":
+        return remoteData;
+      case "success":
+        return f(remoteData.data); // Unsafe, it throws if f throws
+    }
+  },
   mapError<T>(
     remoteData: RemoteData<T>,
     f: (error: Error) => Error,

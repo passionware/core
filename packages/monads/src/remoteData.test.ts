@@ -192,6 +192,67 @@ describe("RemoteData Utility", () => {
     ).toEqual(successData);
   });
 
+  describe("flatMap and unsafeFlatMap Functions", () => {
+    it("flatMap should flatMap over success data correctly", () => {
+      const successData = rd.widen<number>(rd.of(10));
+      const flatMappedData = rd.flatMap(successData, (num) => rd.of(num * 2));
+      expect(flatMappedData).toEqual(rd.of(20));
+    });
+
+    it("flatMap should return original remoteData if the state is pending", () => {
+      const pendingData = rd.widen<number>(rd.ofPending());
+      const flatMappedData = rd.flatMap(pendingData, (num) => rd.of(num * 2));
+      expect(flatMappedData).toEqual(pendingData);
+    });
+
+    it("flatMap should return original remoteData if the state is idle", () => {
+      const idleData = rd.widen<number>(rd.ofIdle());
+      const flatMappedData = rd.flatMap(idleData, (num) => rd.of(num * 2));
+      expect(flatMappedData).toEqual(idleData);
+    });
+
+    it("flatMap should return original remoteData if the state is error", () => {
+      const errorData = rd.widen<number>(rd.ofError(new Error("Test error")));
+      const flatMappedData = rd.flatMap(errorData, (num) => rd.of(num * 2));
+      expect(flatMappedData).toEqual(errorData);
+    });
+
+    it("flatMap should handle mapping errors and return RemoteDataError", () => {
+      const successData = rd.of(10);
+      const flatMappedData = rd.flatMap(successData, () => {
+        throw new Error("FlatMap error");
+      });
+      expect(flatMappedData).toEqual(
+        rd.ofError(new MappingError(new Error("FlatMap error"))),
+      );
+    });
+
+    it("unsafeFlatMap should flatMap over success data correctly", () => {
+      const successData = rd.of(10);
+      const unsafeFlatMappedData = rd.unsafeFlatMap(successData, (num) =>
+        rd.of(num * 2),
+      );
+      expect(unsafeFlatMappedData).toEqual(rd.of(20));
+    });
+
+    it("unsafeFlatMap should return original remoteData if the state is pending", () => {
+      const pendingData = rd.widen<number>(rd.ofPending());
+      const unsafeFlatMappedData = rd.unsafeFlatMap(pendingData, (num) =>
+        rd.of(num * 2),
+      );
+      expect(unsafeFlatMappedData).toEqual(pendingData);
+    });
+
+    it("unsafeFlatMap should throw a MappingError when the mapping function throws", () => {
+      const successData = rd.of(10);
+      expect(() =>
+        rd.unsafeFlatMap(successData, () => {
+          throw new Error("UnsafeFlatMap error");
+        }),
+      ).toThrowError(new Error("UnsafeFlatMap error"));
+    });
+  });
+
   describe("combine Function", () => {
     it("combines two success states correctly", () => {
       const successData1 = rd.of(10);
