@@ -72,6 +72,7 @@ function createBuilder<
         useContext(ctx),
         "Attempted to use hook outside of the main widget component",
       );
+    // todo: this is a problem when we have multiple instances of the same widget
     let latestProps: WidgetInputProps;
     // todo in the future we could just make props a signal
     const Component = creator(useProps, () => latestProps, ctx);
@@ -99,6 +100,11 @@ export const widgetBuilder = {
       ) => {
         return {
           build: createBuilder(passProps),
+        };
+      },
+      passAllProps: () => {
+        return {
+          build: createBuilder<WidgetInputProps, WidgetInputProps>((x) => x),
         };
       },
     };
