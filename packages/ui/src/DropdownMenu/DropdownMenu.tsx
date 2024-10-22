@@ -31,6 +31,7 @@ export interface DropdownMenuProps {
   placement?: Placement;
   floatingOptions?: Partial<Omit<UseFloatingOptions, "open">>;
   disabled?: boolean;
+  resetQueryOnSelect?: boolean;
 }
 
 function DropdownMenuParent({
@@ -38,6 +39,7 @@ function DropdownMenuParent({
   onSelect,
   disabled = false,
   placement = "bottom-start",
+  resetQueryOnSelect = true,
   floatingOptions: { onOpenChange, ...floatingOptions } = {},
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false); // todo useControlledState
@@ -96,8 +98,10 @@ function DropdownMenuParent({
   }
   const handleItemSelect = (id: string) => {
     const props = itemProps.current[id];
-    if (props?.closeOnSelect !== false) {
+    if (resetQueryOnSelect) {
       setQuery("");
+    }
+    if (props?.closeOnSelect !== false) {
       setIsOpen(false);
     }
     props?.onClick?.();
