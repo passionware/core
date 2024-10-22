@@ -9,3 +9,4 @@ export {
 export * from "./useIdPool";
 export * from "./glueNodes";
 export * from "./promiseState";
+export * from "./injectConfig";
