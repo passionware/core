@@ -415,6 +415,19 @@ describe("RemoteData Utility", () => {
           .map(() => 42);
         expect(result).toBe("Error: Test error");
       });
+
+      it("wraps mapping errors in MappingError for success data", () => {
+        const successData = rd.of(10);
+        const errorThrowingRenderer = (data: number) => {
+          throw new Error("Mapping failure");
+        };
+        const result = rd
+            .journey(successData)
+            .wait(() => "Loading")
+            .catch((e) => e)
+            .map(errorThrowingRenderer);
+        expect(result).toEqual(new MappingError(new Error("Mapping failure")));
+      });
     });
   });
 

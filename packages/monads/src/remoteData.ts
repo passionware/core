@@ -286,6 +286,23 @@ export const rd = {
               case "error":
                 return errorRenderer(remote.error);
               case "success":
+                try {
+                  return successRenderer(remote.data);
+                } catch (error) {
+                  return errorRenderer(new MappingError(error));
+                }
+            }
+          },
+          unsafeMap: <C>(successRenderer: (data: T) => C) => {
+            switch (remote.status) {
+              case "idle":
+              case "pending":
+                return isFunction(pendingRenderer)
+                  ? (pendingRenderer() as A)
+                  : pendingRenderer;
+              case "error":
+                return errorRenderer(remote.error);
+              case "success":
                 return successRenderer(remote.data);
             }
           },
