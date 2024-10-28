@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export type SimpleEventListener<E, Metadata = undefined> = [Metadata] extends [
-  undefined
+  undefined,
 ]
   ? (e: E) => void
   : (e: E, metadata: Metadata) => void;
 
 export type SimpleEventSubscribe<E, Metadata = undefined> = (
-  listener: SimpleEventListener<E, Metadata>
+  listener: SimpleEventListener<E, Metadata>,
 ) => /* unsubscribe */ () => void;
 
 // https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
@@ -20,10 +20,28 @@ export interface SimpleEvent<E = void, Metadata = undefined> {
   emit: SimpleEventEmitter<E, Metadata>;
 }
 
+export type InspectableEvent<E = void, Metadata = undefined> = SimpleEvent<
+  E,
+  Metadata
+> & {
+  getListeners: () => SimpleEventListener<E, Metadata>[];
+};
+
 export const createSimpleEvent = <
   E = void,
-  Metadata = undefined
+  Metadata = undefined,
 >(): SimpleEvent<E, Metadata> => {
+  const inspecableEvent = createInspectableEvent<E, Metadata>();
+  return {
+    addListener: inspecableEvent.addListener,
+    emit: inspecableEvent.emit,
+  };
+};
+
+export const createInspectableEvent = <
+  E = void,
+  Metadata = undefined,
+>(): InspectableEvent<E, Metadata> => {
   type Listener = SimpleEventListener<E, Metadata>;
   const listeners: Listener[] = [];
   const addListener = (listener: Listener) => {
@@ -43,12 +61,13 @@ export const createSimpleEvent = <
   return {
     addListener,
     emit: emit as SimpleEventEmitter<E, Metadata>, // casting since we can't check Metadata being undefined in runtime outside emit call
+    getListeners: () => listeners,
   };
 };
 
 export const useSimpleEventSubscription = <E, Metadata>(
   subscribe: SimpleEventSubscribe<E, Metadata>,
-  listener: SimpleEventListener<E, Metadata>
+  listener: SimpleEventListener<E, Metadata>,
 ) => {
   useEffect(() => {
     const unsubscribe = subscribe(listener);
@@ -64,7 +83,7 @@ export const createSwitchingSubscriber = () => {
   return {
     switchTo: <E, Metadata>(
       subscribe: SimpleEventSubscribe<E, Metadata>,
-      listener: SimpleEventListener<E, Metadata>
+      listener: SimpleEventListener<E, Metadata>,
     ) => {
       unsubscribe?.();
       unsubscribe = subscribe(listener);

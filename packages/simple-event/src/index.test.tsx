@@ -1,11 +1,15 @@
 /** @vitest-environment jsdom */
-import { render } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
-import { createSimpleEvent, useSimpleEventSubscription } from './index';
+import { render } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import {
+  createInspectableEvent,
+  createSimpleEvent,
+  useSimpleEventSubscription,
+} from "./index";
 
-describe('simple-event', () => {
-  describe('createSimpleEvent', () => {
-    it('should allow to add listeners', () => {
+describe("simple-event", () => {
+  describe("createSimpleEvent", () => {
+    it("should allow to add listeners", () => {
       const { addListener, emit } = createSimpleEvent();
       const listener = vi.fn();
       addListener(listener);
@@ -13,7 +17,7 @@ describe('simple-event', () => {
       expect(listener).toBeCalledTimes(1);
     });
 
-    it('should allow to remove listeners', () => {
+    it("should allow to remove listeners", () => {
       const { addListener, emit } = createSimpleEvent();
       const listener = vi.fn();
       const removeListener = addListener(listener);
@@ -22,7 +26,7 @@ describe('simple-event', () => {
       expect(listener).not.toBeCalled();
     });
 
-    it('should allow to add multiple listeners', () => {
+    it("should allow to add multiple listeners", () => {
       const { addListener, emit } = createSimpleEvent();
       const listener1 = vi.fn();
       const listener2 = vi.fn();
@@ -33,7 +37,7 @@ describe('simple-event', () => {
       expect(listener2).toBeCalledTimes(1);
     });
 
-    it('should allow to remove multiple listeners', () => {
+    it("should allow to remove multiple listeners", () => {
       const { addListener, emit } = createSimpleEvent();
       const listener1 = vi.fn();
       const listener2 = vi.fn();
@@ -46,7 +50,7 @@ describe('simple-event', () => {
       expect(listener2).not.toBeCalled();
     });
 
-    it('should allow to emit values', () => {
+    it("should allow to emit values", () => {
       const { addListener, emit } = createSimpleEvent<number>();
       const listener = vi.fn();
       addListener(listener);
@@ -54,7 +58,7 @@ describe('simple-event', () => {
       expect(listener).toBeCalledWith(1, undefined);
     });
 
-    it('should allow to emit multiple values', () => {
+    it("should allow to emit multiple values", () => {
       const { addListener, emit } = createSimpleEvent<number>();
       const listener = vi.fn();
       addListener(listener);
@@ -64,7 +68,7 @@ describe('simple-event', () => {
       expect(listener).toBeCalledWith(2, undefined);
     });
 
-    it('should allow to add listeners after emit', () => {
+    it("should allow to add listeners after emit", () => {
       const { addListener, emit } = createSimpleEvent<number>();
       emit(1);
       const listener = vi.fn();
@@ -72,18 +76,18 @@ describe('simple-event', () => {
       expect(listener).not.toBeCalled();
     });
 
-    it('should send metadata', () => {
+    it("should send metadata", () => {
       const { addListener, emit } = createSimpleEvent<number, string>();
       const listener = vi.fn();
       addListener(listener);
-      emit(1, 'test');
-      expect(listener).toBeCalledWith(1, 'test');
+      emit(1, "test");
+      expect(listener).toBeCalledWith(1, "test");
       listener.mockClear();
-      emit(2, 'test2');
-      expect(listener).toBeCalledWith(2, 'test2');
+      emit(2, "test2");
+      expect(listener).toBeCalledWith(2, "test2");
     });
 
-    it('should allow to unsubscribe while emitting an event', () => {
+    it("should allow to unsubscribe while emitting an event", () => {
       const { addListener, emit } = createSimpleEvent<number>();
       const listener1 = vi.fn();
       const listener2 = vi.fn();
@@ -101,8 +105,8 @@ describe('simple-event', () => {
     });
   });
 
-  describe('useSimpleEventSubscription', () => {
-    it('should allow to subscribe on render', () => {
+  describe("useSimpleEventSubscription", () => {
+    it("should allow to subscribe on render", () => {
       const event = createSimpleEvent<number>();
       const listener = vi.fn();
 
@@ -121,7 +125,7 @@ describe('simple-event', () => {
       expect(listener).not.toBeCalledWith(9, expect.anything());
     });
 
-    it('should allow to subscribe on render with multiple listeners', () => {
+    it("should allow to subscribe on render with multiple listeners", () => {
       const event = createSimpleEvent<number>();
       const listener1 = vi.fn();
       const listener2 = vi.fn();
@@ -144,7 +148,7 @@ describe('simple-event', () => {
       expect(listener2).not.toBeCalledWith(9, expect.anything());
     });
 
-    it('should allow to subscribe on render with multiple events', () => {
+    it("should allow to subscribe on render with multiple events", () => {
       const event1 = createSimpleEvent<number>();
       const event2 = createSimpleEvent<number>();
       const listener1 = vi.fn();
@@ -170,7 +174,7 @@ describe('simple-event', () => {
       expect(listener2).not.toBeCalledWith(10, expect.anything());
     });
 
-    it('should clean subscriptions on re-render', () => {
+    it("should clean subscriptions on re-render", () => {
       const event = createSimpleEvent();
       const listener = vi.fn();
 
@@ -185,6 +189,17 @@ describe('simple-event', () => {
       screen.rerender(<Component value={3} />);
       event.emit();
       expect(listener).toBeCalledTimes(1);
+    });
+  });
+
+  describe("inspectableEvent", () => {
+    it("should allow to get listeners", () => {
+      const event = createInspectableEvent<number>();
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
+      event.addListener(listener1);
+      event.addListener(listener2);
+      expect(event.getListeners()).toEqual([listener1, listener2]);
     });
   });
 });
