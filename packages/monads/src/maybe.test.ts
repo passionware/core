@@ -192,6 +192,34 @@ describe("maybe utility", () => {
     });
   });
 
+  describe("mapOrUndefined", () => {
+    it("should apply the function to the value if present", () => {
+      expect(maybe.mapOrUndefined(5, (x) => x * 2)).toBe(10);
+    });
+
+    it("should return undefined if absent", () => {
+      expect(
+        maybe.mapOrUndefined(maybe.of<number>(null), (x) => x * 2),
+      ).toBeUndefined();
+      expect(
+        maybe.mapOrUndefined(maybe.of<number>(undefined), (x) => x * 2),
+      ).toBeUndefined();
+    });
+  });
+
+  describe("mapOrNull", () => {
+    it("should apply the function to the value if present", () => {
+      expect(maybe.mapOrNull(5, (x) => x * 2)).toBe(10);
+    });
+
+    it("should return null if absent", () => {
+      expect(maybe.mapOrNull(maybe.of<number>(null), (x) => x * 2)).toBeNull();
+      expect(
+        maybe.mapOrNull(maybe.of<number>(undefined), (x) => x * 2),
+      ).toBeNull();
+    });
+  });
+
   describe("flatMapOrElse", () => {
     it("should return the value if present", () => {
       expect(maybe.flatMapOrElse(5, (x) => maybe.of(x * 2), 0)).toBe(10);

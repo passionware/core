@@ -78,6 +78,12 @@ export const maybe = {
     }
     throw new Error(message);
   },
+  mapOrUndefined: <T, U>(
+    value: Maybe<T>,
+    fn: (value: Present<T>) => U,
+  ): U | undefined => (maybe.isPresent(value) ? fn(value) : undefined),
+  mapOrNull: <T, U>(value: Maybe<T>, fn: (value: Present<T>) => U): U | null =>
+    maybe.isPresent(value) ? fn(value) : null,
   /**
    * Tries to map the value. If the value is absent or the mapping function returns an absent value,
    * the default value is returned.
