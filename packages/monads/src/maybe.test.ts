@@ -76,6 +76,52 @@ describe("maybe utility", () => {
     });
   });
 
+  describe("getOrThrow", () => {
+    it("should return the value if present", () => {
+      expect(maybe.getOrThrow(5)).toBe(5);
+    });
+
+    it("should throw an error if absent", () => {
+      expect(() => maybe.getOrThrow(null)).toThrowError(
+        "Attempted to unwrap an absent value",
+      );
+      expect(() => maybe.getOrThrow(undefined)).toThrowError(
+        "Attempted to unwrap an absent value",
+      );
+    });
+
+    it("should throw a custom error message if provided", () => {
+      expect(() => maybe.getOrThrow(null, "You are wrong!")).toThrowError(
+        "You are wrong!",
+      );
+      expect(() => maybe.getOrThrow(undefined, "You are wrong!")).toThrowError(
+        "You are wrong!",
+      );
+    });
+  });
+
+  describe("getOrUndefined", () => {
+    it("should return the value if present", () => {
+      expect(maybe.getOrUndefined(5)).toBe(5);
+    });
+
+    it("should return undefined if absent", () => {
+      expect(maybe.getOrUndefined(null)).toBeUndefined();
+      expect(maybe.getOrUndefined(undefined)).toBeUndefined();
+    });
+  });
+
+  describe("getOrNull", () => {
+    it("should return the value if present", () => {
+      expect(maybe.getOrNull(5)).toBe(5);
+    });
+
+    it("should return null if absent", () => {
+      expect(maybe.getOrNull(null)).toBeNull();
+      expect(maybe.getOrNull(undefined)).toBeNull();
+    });
+  });
+
   describe("map", () => {
     it("should apply the function to the value if present", () => {
       expect(maybe.map(5, (x) => x * 2)).toBe(10);

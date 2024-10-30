@@ -44,6 +44,10 @@ export const maybe = {
     }
     throw new Error(message);
   },
+  getOrUndefined: <T>(value: Maybe<T>): Present<T> | undefined =>
+    maybe.isPresent(value) ? value : undefined,
+  getOrNull: <T>(value: Maybe<T>): Present<T> | null =>
+    maybe.isPresent(value) ? value : null,
   // Utilize the ternary operator for a more concise implementation
   map: <T, U>(
     value: T,
