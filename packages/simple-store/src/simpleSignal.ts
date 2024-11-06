@@ -1,3 +1,4 @@
+import { Maybe } from "@passionware/monads";
 import { SimpleStore } from "./simpleStore";
 import { useSyncExternalStore } from "react";
 
@@ -27,6 +28,29 @@ export function createSimpleSignal<T, M = undefined>(
   };
 }
 
+// Define a no-op fallback store outside the hook
+const noopSubscribe = () => () => {};
+const noopGetCurrentValue = () => undefined;
+
+/**
+ * Hook to use the current value of a `SimpleSignal`, with conditional
+ * subscription using `useSyncExternalStore`. Ensures consistent hook usage
+ * by always calling `useSyncExternalStore`, even if `signal` is null or undefined.
+ *
+ * @template T - The type of the data held in the signal.
+ * @param store - A `SimpleStore` instance that may or may not exist.
+ * be `null` or `undefined`.
+ * @returns The current value of the signal, or `undefined` if no signal is present.
+ */
+export function useSimpleSignal<T>(
+  store: Maybe<SimpleStore<T>>,
+): T | undefined {
+  return useSyncExternalStore(
+    store ? store.addUpdateListener : noopSubscribe, // Use no-op subscribe if signal is absent
+    store ? store.getCurrentValue : noopGetCurrentValue, // Use no-op getter if signal is absent
+    noopGetCurrentValue, // Server-side rendering fallback
+  );
+}
 export type SimpleSignal<T> = {
   get current(): T;
   useValue: () => T;
