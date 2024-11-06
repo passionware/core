@@ -1,5 +1,5 @@
 import { Maybe } from "@passionware/monads";
-import { SimpleStore } from "./simpleStore";
+import { SimpleStore, SimpleStoreReadOnly } from "./simpleStore";
 import { useSyncExternalStore } from "react";
 
 /**
@@ -43,7 +43,7 @@ const noopGetCurrentValue = () => undefined;
  * @returns The current value of the signal, or `undefined` if no signal is present.
  */
 export function useSimpleSignal<T>(
-  store: Maybe<SimpleStore<T>>,
+  store: Maybe<SimpleStoreReadOnly<T>>,
 ): T | undefined {
   return useSyncExternalStore(
     store ? store.addUpdateListener : noopSubscribe, // Use no-op subscribe if signal is absent

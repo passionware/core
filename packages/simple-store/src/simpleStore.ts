@@ -1,9 +1,9 @@
-import { SetStateAction } from 'react';
+import { SetStateAction } from "react";
 import {
   SimpleEventEmitter,
   SimpleEventSubscribe,
   createSimpleEvent,
-} from '@passionware/simple-event';
+} from "@passionware/simple-event";
 
 export interface SimpleStore<Data, ChangeMeta = undefined> {
   addUpdateListener: SimpleEventSubscribe<Data, ChangeMeta>;
@@ -11,15 +11,20 @@ export interface SimpleStore<Data, ChangeMeta = undefined> {
   getCurrentValue: () => Data;
 }
 
+export type SimpleStoreReadOnly<Data, ChangeMeta = undefined> = Omit<
+  SimpleStore<Data, ChangeMeta>,
+  "setNewValue"
+>;
+
 export const createSimpleStore = <T, ChangeMeta = undefined>(
-  initialValue: T
+  initialValue: T,
 ): SimpleStore<T, ChangeMeta> => {
   let lastValue: T = initialValue;
 
   const simpleEvent = createSimpleEvent<T, ChangeMeta>();
   const emit = (value: SetStateAction<T>, metadata: ChangeMeta) => {
     const newValue =
-      typeof value === 'function'
+      typeof value === "function"
         ? (value as (prevState: T) => T)(lastValue)
         : value;
     lastValue = newValue;
