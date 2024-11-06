@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "@passionware/simple-event": "*"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^14.2.1"
   }
 }
