@@ -105,8 +105,10 @@ function syncMutation<Request, Response>(
       try {
         const data = await promiseFactory(request);
         onStoreUpdate(mt.ofSuccess(request, data));
+        return data;
       } catch (error) {
         onStoreUpdate(mt.ofError(request, ensureError(error)));
+        throw error;
       }
     },
   };
