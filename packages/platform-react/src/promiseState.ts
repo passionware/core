@@ -1,8 +1,9 @@
 import { mt, MutationData, rd, RemoteData } from "@passionware/monads";
 import { ensureError } from "@passionware/platform-js";
+import { SimpleStore } from "@passionware/simple-store/src";
 import { useEffect, useRef, useState } from "react";
 
-function useRemoteDataState<Response>() {
+function useRemoteData<Response>() {
   const [state, setState] = useState<RemoteData<Response>>(mt.ofIdle());
   const cancelTokenRef = useRef(0);
 
@@ -43,7 +44,7 @@ function useRemoteDataState<Response>() {
   };
 }
 
-function useMutationState<Request, Response>(
+function useMutation<Request, Response>(
   mutation: (request: Request) => Promise<Response>,
 ) {
   const [state, setState] = useState<MutationData<Request, Response>>(
@@ -91,7 +92,48 @@ function useMutationState<Request, Response>(
   };
 }
 
+function syncMutation<Request, Response>(
+  onStoreUpdate: (payload: MutationData<Request, Response>) => void,
+  promiseFactory: (request: Request) => Promise<Response>,
+) {
+  return {
+    reset: () => {
+      onStoreUpdate(mt.ofIdle());
+    },
+    track: async (request: Request) => {
+      onStoreUpdate(mt.ofPending(request));
+      try {
+        const data = await promiseFactory(request);
+        onStoreUpdate(mt.ofSuccess(request, data));
+      } catch (error) {
+        onStoreUpdate(mt.ofError(request, ensureError(error)));
+      }
+    },
+  };
+}
+
+function syncRemoteData<Response>(
+  onStoreUpdate: (payload: RemoteData<Response>) => void,
+) {
+  return {
+    reset: () => {
+      onStoreUpdate(mt.ofIdle());
+    },
+    track: async (promise: Promise<Response>) => {
+      onStoreUpdate(rd.ofPending());
+      try {
+        const data = await promise;
+        onStoreUpdate(rd.of(data));
+      } catch (error) {
+        onStoreUpdate(rd.ofError(ensureError(error)));
+      }
+    },
+  };
+}
+
 export const promiseState = {
-  useRemoteData: useRemoteDataState,
-  useMutation: useMutationState,
+  useRemoteData,
+  useMutation,
+  syncMutation,
+  syncRemoteData,
 };
