@@ -55,6 +55,9 @@ export const mt = {
   isInError: <M extends MutationData<unknown, unknown>>(
     mutation: M,
   ): mutation is Extract<M, { status: "error" }> => mutation.status === "error",
+  isStarted: <M extends MutationData<unknown, unknown>>(
+    mutation: M,
+  ): mutation is Exclude<M, { status: "idle" }> => mutation.status !== "idle",
   isExecutable: <M extends MutationData<unknown, unknown>>(mutation: M) =>
     mutation.status !== "pending",
   mapError: <Request, Response>(
