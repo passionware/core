@@ -35,6 +35,20 @@ describe("Messaging Systems", () => {
       const result = await messaging.sendRequest(42);
       expect(result).toBe("Response for 42");
     });
+
+    it("should call cleanup functions after a response is received", async () => {
+      const messaging = createRequestResponseMessaging<number, string>();
+
+      const cleanup = vi.fn();
+      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
+        resolveCallback(`Response for ${metadata}`);
+        return cleanup;
+      });
+
+      const result = await messaging.sendRequest(42);
+      expect(result).toBe("Response for 42");
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("createRequestCollectMessaging", () => {
@@ -82,51 +96,33 @@ describe("Messaging Systems", () => {
         "Delayed response for 42",
       ]);
     });
+
+    it("should call cleanup functions after all responses are collected", async () => {
+      const messaging = createRequestCollectMessaging<number, string>();
+
+      const cleanup1 = vi.fn();
+      const cleanup2 = vi.fn();
+
+      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
+        resolveCallback(`First response for ${metadata}`);
+        return cleanup1;
+      });
+      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
+        resolveCallback(`Second response for ${metadata}`);
+        return cleanup2;
+      });
+
+      const result = await messaging.sendRequest(42);
+      expect(result).toEqual([
+        "First response for 42",
+        "Second response for 42",
+      ]);
+      expect(cleanup1).toHaveBeenCalledTimes(1);
+      expect(cleanup2).toHaveBeenCalledTimes(1);
+    });
   });
+
   describe("createRequestFirstResponseMessaging", () => {
-    it("should reject if there are no listeners", async () => {
-      const messaging = createRequestFirstResponseMessaging<number, string>();
-
-      await expect(messaging.sendRequest(42)).rejects.toThrow(
-        "No listener found for the request in request-first-response mode, expected at least one",
-      );
-    });
-
-    it("should resolve with the first response from multiple listeners", async () => {
-      const messaging = createRequestFirstResponseMessaging<number, string>();
-
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        setTimeout(() => resolveCallback(`First response for ${metadata}`), 10);
-      });
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`Immediate response for ${metadata}`);
-      });
-
-      const result = await messaging.sendRequest(42);
-      expect(result).toBe("Immediate response for 42");
-    });
-
-    it("should ignore other responses after the first one", async () => {
-      const messaging = createRequestFirstResponseMessaging<number, string>();
-
-      const listener1 = vi.fn(({ metadata, resolveCallback }) => {
-        setTimeout(() => resolveCallback(`First response for ${metadata}`), 10);
-      });
-      const listener2 = vi.fn(({ metadata, resolveCallback }) => {
-        resolveCallback(`Immediate response for ${metadata}`);
-      });
-
-      messaging.subscribeToRequest(listener1);
-      messaging.subscribeToRequest(listener2);
-
-      const result = await messaging.sendRequest(42);
-      expect(result).toBe("Immediate response for 42");
-
-      expect(listener1).toHaveBeenCalledTimes(1);
-      expect(listener2).toHaveBeenCalledTimes(1);
-    });
-  });
-  describe("createRequestFirstResponseMessaging with Cleanup Functions", () => {
     it("should reject if there are no listeners", async () => {
       const messaging = createRequestFirstResponseMessaging<number, string>();
 
@@ -180,7 +176,7 @@ describe("Messaging Systems", () => {
         return cleanup1;
       });
       messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        delay(10).then(() => resolveCallback(`Response for ${metadata}`));
+        delay(5).then(() => resolveCallback(`Response for ${metadata}`));
         return cleanup2;
       });
 

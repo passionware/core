@@ -1,22 +1,27 @@
-import { createInspectableEvent } from "@passionware/simple-event";
-
 export type MessageEventPayload<Request, Response> = {
   metadata: Request;
   resolveCallback: (response: Response) => void;
 };
+type MaybeCleanupFnWithSource = void | ((source: "self" | "other") => void);
+type MaybeCleanupFn = void | (() => void);
 export function createRequestResponseMessaging<Request, Response>() {
-  const event =
-    createInspectableEvent<MessageEventPayload<Request, Response>>();
+  const listeners = new Set<
+    (payload: MessageEventPayload<Request, Response>) => MaybeCleanupFn
+  >();
 
   return {
     subscribeToRequest(
-      listener: (payload: MessageEventPayload<Request, Response>) => void,
+      listener: (
+        payload: MessageEventPayload<Request, Response>,
+      ) => MaybeCleanupFn,
     ) {
-      return event.addListener(listener);
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
     sendRequest(request: Request) {
       return new Promise<Response>((resolve, reject) => {
-        const numListeners = event.getListeners().length;
+        const numListeners = listeners.size;
+
         if (numListeners === 0) {
           reject(
             new Error(
@@ -30,9 +35,24 @@ export function createRequestResponseMessaging<Request, Response>() {
             ),
           );
         } else {
-          event.emit({
-            metadata: request,
-            resolveCallback: resolve,
+          const cleanups = new Map<
+            (payload: MessageEventPayload<Request, Response>) => MaybeCleanupFn,
+            MaybeCleanupFn
+          >();
+          listeners.forEach((listener) => {
+            const cleanup = listener({
+              metadata: request,
+              resolveCallback: async (response) => {
+                // edge case - someone in the listener synchronously calls the cleanup function so cleanup is not set yet
+                await Promise.resolve();
+                resolve(response);
+                for (const [listenerOfCleanup, cleanup] of cleanups) {
+                  cleanup?.();
+                }
+                cleanups.clear();
+              },
+            });
+            cleanups.set(listener, cleanup);
           });
         }
       });
@@ -41,20 +61,22 @@ export function createRequestResponseMessaging<Request, Response>() {
 }
 
 export function createRequestCollectMessaging<Request, Response>() {
-  type MessageEventPayload = {
-    metadata: Request;
-    resolveCallback: (response: Response) => void;
-  };
-
-  const event = createInspectableEvent<MessageEventPayload>();
+  const listeners: Set<
+    (
+      payload: MessageEventPayload<Request, Response>,
+    ) => MaybeCleanupFnWithSource
+  > = new Set();
 
   return {
-    subscribeToRequest(listener: (payload: MessageEventPayload) => void) {
-      return event.addListener(listener);
+    subscribeToRequest(
+      listener: (payload: MessageEventPayload<Request, Response>) => void,
+    ) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
     sendRequest(request: Request) {
       return new Promise<Response[]>((resolve, reject) => {
-        const numListeners = event.getListeners().length;
+        const numListeners = listeners.size;
 
         if (numListeners === 0) {
           reject(
@@ -64,14 +86,32 @@ export function createRequestCollectMessaging<Request, Response>() {
           );
         } else {
           const collectedResponses: Response[] = [];
-          event.emit({
-            metadata: request,
-            resolveCallback: (response) => {
-              collectedResponses.push(response);
-              if (collectedResponses.length === numListeners) {
-                resolve(collectedResponses);
-              }
-            },
+
+          const cleanups = new Map<
+            (
+              payload: MessageEventPayload<Request, Response>,
+            ) => MaybeCleanupFnWithSource,
+            MaybeCleanupFnWithSource
+          >();
+
+          listeners.forEach((listener) => {
+            const cleanup = listener({
+              metadata: request,
+              resolveCallback: async (response) => {
+                // edge case - someone in the listener synchronously calls the cleanup function so cleanup is not set yet
+                await Promise.resolve();
+                collectedResponses.push(response);
+                if (collectedResponses.length === numListeners) {
+                  resolve(collectedResponses);
+                  for (const [listenerOfCleanup, cleanup] of cleanups) {
+                    cleanup?.(
+                      listenerOfCleanup === listener ? "self" : "other",
+                    );
+                  }
+                }
+              },
+            });
+            cleanups.set(listener, cleanup);
           });
         }
       });
@@ -85,29 +125,21 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
     resolveCallback: (response: Response) => void;
   };
 
-  const event = createInspectableEvent<MessageEventPayload>();
-  const cleanupFunctions: ((source: "self" | "other") => void)[] = [];
-  let responderIndex: number | null = null; // Tracks which listener responded
+  const listeners: Set<
+    (payload: MessageEventPayload) => MaybeCleanupFnWithSource
+  > = new Set();
 
   return {
     subscribeToRequest(
-      listener: (
-        payload: MessageEventPayload,
-      ) => ((source: "self" | "other") => void) | void,
+      listener: (payload: MessageEventPayload) => MaybeCleanupFnWithSource,
     ) {
-      const wrappedListener = (payload: MessageEventPayload) => {
-        const cleanup = listener(payload);
-        if (cleanup) {
-          cleanupFunctions.push(cleanup);
-        }
-      };
-
-      return event.addListener(wrappedListener);
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
     sendRequest(request: Request) {
+      // todo - here we should start collecting cleanup functions, so we isolate the cleanup functions for each request
       return new Promise<Response>((resolve, reject) => {
-        const listeners = event.getListeners();
-        const numListeners = listeners.length;
+        const numListeners = listeners.size;
 
         if (numListeners === 0) {
           reject(
@@ -117,25 +149,46 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
           );
         } else {
           let isResolved = false;
+          const cleanups = new Map<
+            (payload: MessageEventPayload) => MaybeCleanupFnWithSource,
+            MaybeCleanupFnWithSource
+          >();
 
           listeners.forEach((listener, index) => {
-            listener({
+            const cleanup = listener({
               metadata: request,
-              resolveCallback: (response) => {
+              resolveCallback: async (response) => {
+                // edge case - someone in the listener synchronously calls the cleanup function so cleanup is not set yet
+                await Promise.resolve();
                 if (!isResolved) {
                   isResolved = true;
                   resolve(response);
-                  responderIndex = index; // Set the index of the responding listener
 
-                  // Call each cleanup function with the appropriate source parameter
-                  cleanupFunctions.forEach((cleanup, cleanupIndex) => {
-                    cleanup(cleanupIndex === responderIndex ? "self" : "other");
-                  });
-
-                  cleanupFunctions.length = 0; // Clear cleanup functions after calling them
+                  for (const [listenerOfCleanup, cleanup] of cleanups) {
+                    cleanup?.(
+                      listenerOfCleanup === listener ? "self" : "other",
+                    );
+                  }
+                  cleanups.clear();
+                } else {
+                  console.warn(
+                    `Multiple responses received in request-first-response mode, expected at most one.
+                    You code should prevent this from happening by properly utilizing cleanup functions.
+                    example:
+                    let savedResolveCallback;
+                    subscribeToRequest(({ metadata, resolveCallback }) => {
+                      savedResolvedCallback=resolveCallback("response");
+                      return () => { savedResolveCallback = undefined; };
+                    });
+                    
+                    // later in the code
+                    savedResolveCallback?.("response"); // this will be called only if the cleanup function was not called before
+                    `,
+                  );
                 }
               },
             });
+            cleanups.set(listener, cleanup);
           });
         }
       });
