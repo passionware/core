@@ -16,7 +16,7 @@ export function createRequestResponseMessaging<Request, Response>() {
       ) => MaybeCleanupFn,
     ) {
       listeners.add(listener);
-      return () => listeners.delete(listener);
+      return () => void listeners.delete(listener);
     },
     sendRequest(request: Request) {
       return new Promise<Response>((resolve, reject) => {
@@ -72,7 +72,7 @@ export function createRequestCollectMessaging<Request, Response>() {
       listener: (payload: MessageEventPayload<Request, Response>) => void,
     ) {
       listeners.add(listener);
-      return () => listeners.delete(listener);
+      return () => void listeners.delete(listener);
     },
     sendRequest(request: Request) {
       return new Promise<Response[]>((resolve, reject) => {
@@ -134,7 +134,7 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
       listener: (payload: MessageEventPayload) => MaybeCleanupFnWithSource,
     ) {
       listeners.add(listener);
-      return () => listeners.delete(listener);
+      return () => void listeners.delete(listener);
     },
     sendRequest(request: Request) {
       // todo - here we should start collecting cleanup functions, so we isolate the cleanup functions for each request
