@@ -1,4 +1,5 @@
 import { rd, RemoteData } from "@passionware/monads";
+import { delay } from "@passionware/platform-js";
 import { useEffect, useState, type DependencyList } from "react";
 
 export type TestQuery<T> = {
@@ -43,6 +44,16 @@ export const testQuery = {
     }, [queryStatus, maybeData, maybeError, query.delay]);
 
     return state;
+  },
+  asPromise: async <T>(query: TestQuery<T>) => {
+    await delay(query.delay);
+    if (rd.isSuccess(query.remoteData)) {
+      return query.remoteData.data;
+    }
+    if (rd.isError(query.remoteData)) {
+      throw query.remoteData.error;
+    }
+    return new Promise(() => void 0);
   },
   useMappedData: <T, V, D extends DependencyList>(
     query: TestQuery<T>,
