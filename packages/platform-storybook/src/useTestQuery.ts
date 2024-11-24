@@ -45,7 +45,7 @@ export const testQuery = {
 
     return state;
   },
-  asPromise: async <T>(query: TestQuery<T>) => {
+  asPromise: async <T>(query: TestQuery<T>): Promise<T> => {
     await delay(query.delay);
     if (rd.isSuccess(query.remoteData)) {
       return query.remoteData.data;
