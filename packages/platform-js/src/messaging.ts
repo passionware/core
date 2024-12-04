@@ -47,7 +47,10 @@ export function createRequestResponseMessaging<Request, Response>() {
                 await Promise.resolve();
                 resolve(response);
                 for (const [listenerOfCleanup, cleanup] of cleanups) {
-                  cleanup?.();
+                  // void functions can return anything, ie promises, so we need to ignore the return value in this case
+                  if (cleanup && typeof cleanup === "function") {
+                    cleanup();
+                  }
                 }
                 cleanups.clear();
               },
@@ -104,9 +107,12 @@ export function createRequestCollectMessaging<Request, Response>() {
                 if (collectedResponses.length === numListeners) {
                   resolve(collectedResponses);
                   for (const [listenerOfCleanup, cleanup] of cleanups) {
-                    cleanup?.(
-                      listenerOfCleanup === listener ? "self" : "other",
-                    );
+                    // void functions can return anything, ie promises, so we need to ignore the return value in this case
+                    if (cleanup && typeof cleanup === "function") {
+                      cleanup(
+                        listenerOfCleanup === listener ? "self" : "other",
+                      );
+                    }
                   }
                 }
               },
@@ -165,9 +171,12 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
                   resolve(response);
 
                   for (const [listenerOfCleanup, cleanup] of cleanups) {
-                    cleanup?.(
-                      listenerOfCleanup === listener ? "self" : "other",
-                    );
+                    // void functions can return anything, ie promises, so we need to ignore the return value in this case
+                    if (cleanup && typeof cleanup === "function") {
+                      cleanup(
+                        listenerOfCleanup === listener ? "self" : "other",
+                      );
+                    }
                   }
                   cleanups.clear();
                 } else {
