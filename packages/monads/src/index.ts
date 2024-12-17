@@ -1,4 +1,11 @@
-export { rd, type RemoteData, RemoteCombinedError } from "./remoteData";
+export {
+  rd,
+  type RemoteData,
+  type RemoteCombinedError,
+  type RemoteDataResponse,
+  type MappingError,
+  type RemoteDataGetError,
+} from "./remoteData";
 export {
   mt,
   type MutationData,
@@ -6,6 +13,8 @@ export {
   type SuccessMutationData,
   type IdleMutationData,
   type PendingMutationData,
+  type MutationResponse,
+  type MutationRequest,
 } from "./mutation";
 export { maybe, type Maybe, type Absent, type Present } from "./maybe";
 

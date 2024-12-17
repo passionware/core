@@ -21,6 +21,22 @@ export type MutationData<Request, Response> =
   | SuccessMutationData<Request, Response>
   | ErrorMutationData<Request>;
 
+/**
+ * Extracts the response type from a mutation data type
+ */
+export type MutationResponse<T extends MutationData<unknown, unknown>> =
+  T extends SuccessMutationData<unknown, infer R> ? R : never;
+
+/**
+ * Extracts the request type from a mutation data type
+ */
+export type MutationRequest<T extends MutationData<unknown, unknown>> =
+  T extends {
+    request: infer R;
+  }
+    ? R
+    : never;
+
 export const mt = {
   ofSuccess: <Request, Response>(request: Request, response: Response) =>
     ({
