@@ -26,6 +26,15 @@ export type RemoteDataResponse<T extends RemoteData<unknown>> = T extends {
   ? U
   : never;
 
+/**
+ * Extracts the request type from a RemoteData type
+ */
+export type RemoteDataToSuccess<T extends RemoteData<unknown>> = T extends {
+  data: infer U;
+}
+  ? RemoteDataSuccess<U>
+  : never;
+
 export class MappingError extends Error {
   originalError: unknown;
 

@@ -37,6 +37,26 @@ export type MutationRequest<T extends MutationData<unknown, unknown>> =
     ? R
     : never;
 
+/**
+ * Converts a mutation data type to a success mutation data type
+ */
+export type MutationDataToSuccess<T extends MutationData<unknown, unknown>> =
+  T extends { request: infer R; response: infer S }
+    ? SuccessMutationData<R, S>
+    : never;
+
+/**
+ * Converts a mutation data type to an error mutation data type
+ */
+export type MutationDataToError<T extends MutationData<unknown, unknown>> =
+  T extends { request: infer R } ? ErrorMutationData<R> : never;
+
+/**
+ * Converts a mutation data type to a pending mutation data type
+ */
+export type MutationDataToPending<T extends MutationData<unknown, unknown>> =
+  T extends { request: infer R } ? PendingMutationData<R> : never;
+
 export const mt = {
   ofSuccess: <Request, Response>(request: Request, response: Response) =>
     ({

@@ -5,6 +5,7 @@ export {
   type RemoteDataResponse,
   type MappingError,
   type RemoteDataGetError,
+  type RemoteDataToSuccess,
 } from "./remoteData";
 export {
   mt,
@@ -15,6 +16,9 @@ export {
   type PendingMutationData,
   type MutationResponse,
   type MutationRequest,
+  type MutationDataToSuccess,
+  type MutationDataToError,
+  type MutationDataToPending,
 } from "./mutation";
 export { maybe, type Maybe, type Absent, type Present } from "./maybe";
 
