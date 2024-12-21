@@ -98,6 +98,15 @@ describe("maybe utility", () => {
         "You are wrong!",
       );
     });
+
+    it("should throw a custom error if provided as a function", () => {
+      expect(() =>
+        maybe.getOrThrow(null, () => new Error("You are wrong!")),
+      ).toThrowError("You are wrong!");
+      expect(() =>
+        maybe.getOrThrow(undefined, () => new Error("You are wrong!")),
+      ).toThrowError("You are wrong!");
+    });
   });
 
   describe("getOrUndefined", () => {

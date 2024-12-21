@@ -37,10 +37,13 @@ export const maybe = {
     maybe.isPresent(value) ? value : make(),
   getOrThrow: <T>(
     value: Maybe<T>,
-    message = "Attempted to unwrap an absent value",
+    message: string | (() => Error) = "Attempted to unwrap an absent value",
   ): Present<T> => {
     if (maybe.isPresent(value)) {
       return value;
+    }
+    if (typeof message === "function") {
+      throw message();
     }
     throw new Error(message);
   },
