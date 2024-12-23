@@ -47,12 +47,16 @@ type MappedFields<Args, Mapping extends Mapper<Args>> = {
 // Modified createArgsAccessor to work with createArgsDecorator's return type
 export function createArgsAccessor<Args, Mapping extends Mapper<Args>>(
   argsDecorator: ArgsDecorator<Args>,
-  mapping: Mapping,
+  mapping?: Mapping,
 ) {
   // Get the latest mapped args based on mapping
   const getLatestArgs = (): MappedFields<Args, Mapping> => {
     const latestArgs = argsDecorator.getLatestArgs();
     const mappedArgs = latestArgs;
+
+    if (!mapping) {
+      return latestArgs as MappedFields<Args, Mapping>;
+    }
 
     for (const [mappedKey, originalKey] of Object.entries(mapping) as [
       keyof Mapping,
@@ -68,6 +72,10 @@ export function createArgsAccessor<Args, Mapping extends Mapper<Args>>(
   const useArgs = (): MappedFields<Args, Mapping> => {
     const contextArgs = argsDecorator.useArgs();
     const mappedArgs = contextArgs;
+
+    if (!mapping) {
+      return contextArgs as MappedFields<Args, Mapping>;
+    }
 
     for (const [originalKey, mappedKey] of Object.entries(mapping) as [
       keyof Mapping,
