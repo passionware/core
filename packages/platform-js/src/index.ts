@@ -5,4 +5,5 @@ export * from "./v4s";
 export * from "./strictMap";
 export * from "./buffer";
 export * from "./messaging";
+export * from "./messaging.stream";
 export * from "./delay";
