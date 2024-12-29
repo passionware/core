@@ -6,8 +6,8 @@ import { MessageSpec } from "./messaging";
  * and `Response["final"]` is the type for the final result.
  */
 export type MessageEventStreamPayload<
-    Request,
-    Response extends { partial: unknown; final: unknown },
+  Request,
+  Response extends { partial: unknown; final: unknown },
 > = {
   /** Metadata for the request (e.g., parameters). */
   metadata: Request;
@@ -36,7 +36,9 @@ type MaybeCleanupFn = void | (() => void);
  * The successful end of stream returns a Promise<Response["final"]>,
  * rather than needing a separate `onEnd`.
  */
-export type RequestStreamOptions<Response extends { partial: unknown; final: unknown }> = {
+export type RequestStreamOptions<
+  Response extends { partial: unknown; final: unknown },
+> = {
   onData?: (partial: Response["partial"]) => void;
   onError?: (err: Error) => void;
 };
@@ -53,15 +55,15 @@ export type RequestStreamOptions<Response extends { partial: unknown; final: unk
  * or rejects on failStream(...).
  */
 export function createRequestStreamMessaging<
-    Request,
-    Response extends { partial: unknown; final: unknown },
+  Request,
+  Response extends { partial: unknown; final: unknown },
 >() {
   /**
    * The listener function receives a payload describing how to push partial data,
    * end the stream, or fail the stream.
    */
   type ListenerFn = (
-      payload: MessageEventStreamPayload<Request, Response>
+    payload: MessageEventStreamPayload<Request, Response>,
   ) => MaybeCleanupFn;
 
   /** We store the listener(s) in a Set, expecting at most one. */
@@ -85,8 +87,8 @@ export function createRequestStreamMessaging<
      * or rejects on failStream(...).
      */
     sendRequest(
-        request: Request,
-        options: RequestStreamOptions<Response> = {},
+      request: Request,
+      options: RequestStreamOptions<Response> = {},
     ): Promise<Response["final"]> {
       const { onData, onError } = options;
 
@@ -95,13 +97,13 @@ export function createRequestStreamMessaging<
         const numListeners = listeners.size;
         if (numListeners === 0) {
           const err = new Error(
-              "No listener found in request-stream mode (expected exactly one).",
+            "No listener found in request-stream mode (expected exactly one).",
           );
           onError?.(err);
           return reject(err);
         } else if (numListeners > 1) {
           const err = new Error(
-              "Multiple listeners found in request-stream mode (expected exactly one).",
+            "Multiple listeners found in request-stream mode (expected exactly one).",
           );
           onError?.(err);
           return reject(err);
@@ -159,9 +161,16 @@ export function createRequestStreamMessaging<
  * you can define a type alias that matches your new shape:
  */
 export type StreamResponseMessaging<Message> =
-// We now expect MessageSpec<Req, { partial: X; final: Y }>
-    Message extends MessageSpec<infer Req, infer Resp>
-        ? Resp extends { partial: unknown; final: unknown }
-            ? ReturnType<typeof createRequestStreamMessaging<Req, Resp>>
-            : never
-        : never;
+  // We now expect MessageSpec<Req, { partial: X; final: Y }>
+  Message extends MessageSpec<infer Req, infer Resp>
+    ? Resp extends { partial: unknown; final: unknown }
+      ? ReturnType<typeof createRequestStreamMessaging<Req, Resp>>
+      : never
+    : never;
+
+export type MessageToStreamSubscriberPayload<Message> =
+  Message extends MessageSpec<infer Request, infer Response>
+    ? Response extends { partial: unknown; final: unknown }
+      ? MessageEventStreamPayload<Request, Response>
+      : never
+    : never;
