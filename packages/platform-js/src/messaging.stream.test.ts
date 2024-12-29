@@ -1,14 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRequestStreamMessaging } from "./messaging.stream";
 
-describe("createRequestStreamMessaging (No onEnd callback)", () => {
+describe("createRequestStreamMessaging (partial=string, final=void)", () => {
   it("should reject if there are no listeners", async () => {
-    const messaging = createRequestStreamMessaging<number, string>();
+    const messaging = createRequestStreamMessaging<
+      number,
+      { partial: string; final: void }
+    >();
 
-    // No listener subscribed
     await expect(
       messaging.sendRequest(42, {
-        onData: vi.fn(),
+        onData: vi.fn(), // onData receives string
         onError: vi.fn(),
       }),
     ).rejects.toThrow(
@@ -17,9 +19,14 @@ describe("createRequestStreamMessaging (No onEnd callback)", () => {
   });
 
   it("should reject if there are multiple listeners", async () => {
-    const messaging = createRequestStreamMessaging<number, string>();
-    messaging.subscribeToRequest(vi.fn());
-    messaging.subscribeToRequest(vi.fn());
+    const messaging = createRequestStreamMessaging<
+      number,
+      { partial: string; final: void }
+    >();
+
+    // Subscribe two dummy listeners
+    const unsub1 = messaging.subscribeToRequest(vi.fn());
+    const unsub2 = messaging.subscribeToRequest(vi.fn());
 
     await expect(
       messaging.sendRequest(42, {
@@ -29,42 +36,60 @@ describe("createRequestStreamMessaging (No onEnd callback)", () => {
     ).rejects.toThrow(
       "Multiple listeners found in request-stream mode (expected exactly one).",
     );
+
+    // Cleanup
+    unsub1();
+    unsub2();
   });
 
-  it("should receive partial data via onData before endStream, then resolve", async () => {
-    const messaging = createRequestStreamMessaging<number, string>();
+  it("should receive partial data (string) via onData, then resolve (void) when endStream is called", async () => {
+    const messaging = createRequestStreamMessaging<
+      number,
+      { partial: string; final: void }
+    >();
     let pushCounter = 0;
 
-    messaging.subscribeToRequest(({ metadata, pushResponse, endStream }) => {
-      const interval = setInterval(() => {
-        pushCounter++;
-        pushResponse(`Partial #${pushCounter} for ${metadata}`);
-        if (pushCounter === 3) {
-          clearInterval(interval);
-          endStream(); // <-- Promise should resolve here
-        }
-      }, 10);
+    // Subscribe exactly one listener that pushes partial data 3 times
+    // and then calls endStream() with no final argument (since final=void).
+    const unsubscribe = messaging.subscribeToRequest(
+      ({ metadata, pushResponse, endStream }) => {
+        const interval = setInterval(() => {
+          pushCounter++;
+          pushResponse(`Partial #${pushCounter} for ${metadata}`);
+          if (pushCounter === 3) {
+            clearInterval(interval);
+            endStream(); // <--- final=void
+          }
+        }, 10);
 
-      return () => clearInterval(interval);
-    });
+        // Cleanup if needed
+        return () => clearInterval(interval);
+      },
+    );
 
     const onDataFn = vi.fn();
-
-    await messaging.sendRequest(42, {
+    const promiseResult = await messaging.sendRequest(42, {
       onData: onDataFn,
     });
+    // Because final=void, we expect promiseResult to be `undefined`
+    expect(promiseResult).toBeUndefined();
 
     // We expect 3 partial responses
     expect(onDataFn).toHaveBeenCalledTimes(3);
     expect(onDataFn).toHaveBeenNthCalledWith(1, "Partial #1 for 42");
     expect(onDataFn).toHaveBeenNthCalledWith(2, "Partial #2 for 42");
     expect(onDataFn).toHaveBeenNthCalledWith(3, "Partial #3 for 42");
+
+    unsubscribe();
   });
 
   it("should call onError and reject the promise if failStream is called", async () => {
-    const messaging = createRequestStreamMessaging<number, string>();
+    const messaging = createRequestStreamMessaging<
+      number,
+      { partial: string; final: void }
+    >();
 
-    messaging.subscribeToRequest(({ failStream }) => {
+    const unsubscribe = messaging.subscribeToRequest(({ failStream }) => {
       setTimeout(() => {
         failStream(new Error("failStream test error"));
       }, 10);
@@ -80,32 +105,71 @@ describe("createRequestStreamMessaging (No onEnd callback)", () => {
     // onError callback should be called once
     expect(onErrorFn).toHaveBeenCalledTimes(1);
     expect(onErrorFn.mock.calls[0][0].message).toBe("failStream test error");
+
+    unsubscribe();
   });
 
   it("should call cleanup after endStream is called", async () => {
-    const messaging = createRequestStreamMessaging<number, string>();
+    const messaging = createRequestStreamMessaging<
+      number,
+      { partial: string; final: void }
+    >();
     const cleanupFn = vi.fn();
 
-    messaging.subscribeToRequest(({ pushResponse, endStream }) => {
-      pushResponse("Hello");
-      endStream();
-      return cleanupFn;
-    });
+    const unsubscribe = messaging.subscribeToRequest(
+      ({ pushResponse, endStream }) => {
+        pushResponse("Hello");
+        endStream(); // final=void
+        return cleanupFn;
+      },
+    );
 
-    await messaging.sendRequest(42);
+    // The resolved promise should be `undefined` because final=void
+    const result = await messaging.sendRequest(42);
+    expect(result).toBeUndefined();
+
+    // Cleanup function is called
     expect(cleanupFn).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
   });
 
   it("should call cleanup after failStream is called", async () => {
-    const messaging = createRequestStreamMessaging<number, string>();
+    const messaging = createRequestStreamMessaging<
+      number,
+      { partial: string; final: void }
+    >();
     const cleanupFn = vi.fn();
 
-    messaging.subscribeToRequest(({ failStream }) => {
+    const unsubscribe = messaging.subscribeToRequest(({ failStream }) => {
       failStream(new Error("test-error"));
       return cleanupFn;
     });
 
     await expect(messaging.sendRequest(42)).rejects.toThrow("test-error");
+
     expect(cleanupFn).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
+  it("should allow to send final data with endStream", async () => {
+    const messaging = createRequestStreamMessaging<
+      number,
+      { partial: string; final: number }
+    >();
+    const cleanupFn = vi.fn();
+    const unsubscribe = messaging.subscribeToRequest(
+      ({ pushResponse, endStream }) => {
+        pushResponse("Hello");
+        endStream(123);
+        return cleanupFn;
+      },
+    );
+
+    const result = await messaging.sendRequest(42);
+    expect(result).toBe(123);
+
+    expect(cleanupFn).toHaveBeenCalledTimes(1);
+    unsubscribe();
   });
 });

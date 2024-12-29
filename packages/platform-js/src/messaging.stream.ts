@@ -1,15 +1,26 @@
-import { createRequestFirstResponseMessaging, MessageSpec } from "./messaging";
+import { MessageSpec } from "./messaging";
 
 /**
  * Represents a single "request" and its corresponding response stream.
+ * Here, `Response["partial"]` is the type for partial data,
+ * and `Response["final"]` is the type for the final result.
  */
-export type MessageEventStreamPayload<Request, Response> = {
+export type MessageEventStreamPayload<
+    Request,
+    Response extends { partial: unknown; final: unknown },
+> = {
   /** Metadata for the request (e.g., parameters). */
   metadata: Request;
-  /** Emit a piece of partial data to the caller. */
-  pushResponse: (partial: Response) => void;
-  /** End the stream successfully. */
-  endStream: () => void;
+  /**
+   * Emit a partial piece of data to the caller.
+   * This must match Response["partial"].
+   */
+  pushResponse: (partial: Response["partial"]) => void;
+  /**
+   * End the stream successfully, passing the final result.
+   * This must match Response["final"].
+   */
+  endStream: (finalData: Response["final"]) => void;
   /** End the stream with an error. */
   failStream: (error: Error) => void;
 };
@@ -19,29 +30,38 @@ type MaybeCleanupFn = void | (() => void);
 
 /**
  * Optional callbacks the caller can provide:
- * - `onData`  : Called for each partial response
- * - `onError` : Called if `failStream(...)` is invoked
+ * - `onData`: Called for each piece of Response["partial"]
+ * - `onError`: Called if `failStream(...)` is invoked
  *
- * The "end of stream" success is signaled by the Promise resolve,
- * rather than a callback like `onEnd`.
+ * The successful end of stream returns a Promise<Response["final"]>,
+ * rather than needing a separate `onEnd`.
  */
-export type RequestStreamOptions<Response> = {
-  onData?: (partial: Response) => void;
+export type RequestStreamOptions<Response extends { partial: unknown; final: unknown }> = {
+  onData?: (partial: Response["partial"]) => void;
   onError?: (err: Error) => void;
 };
 
 /**
- * Creates a messaging system where exactly one listener can handle
+ * Create a messaging system where exactly one listener can handle
  * a given request. The listener can:
- *  - push multiple pieces of data (`pushResponse`),
- *  - eventually call `endStream()` or `failStream(...)`.
+ *  - push multiple pieces of partial data (`pushResponse(...)`),
+ *  - eventually call `endStream(finalData)`,
+ *  - or fail with `failStream(error)`.
  *
  * The caller provides optional callbacks for partial data and errors,
- * and uses the returned Promise to detect the successful end.
+ * and gets a Promise<Response["final"]> that resolves on endStream(...)
+ * or rejects on failStream(...).
  */
-export function createRequestStreamMessaging<Request, Response>() {
+export function createRequestStreamMessaging<
+    Request,
+    Response extends { partial: unknown; final: unknown },
+>() {
+  /**
+   * The listener function receives a payload describing how to push partial data,
+   * end the stream, or fail the stream.
+   */
   type ListenerFn = (
-    payload: MessageEventStreamPayload<Request, Response>,
+      payload: MessageEventStreamPayload<Request, Response>
   ) => MaybeCleanupFn;
 
   /** We store the listener(s) in a Set, expecting at most one. */
@@ -49,8 +69,8 @@ export function createRequestStreamMessaging<Request, Response>() {
 
   return {
     /**
-     * Subscribe a single listener to handle requests of this type.
-     * Returns a function to unsubscribe that listener.
+     * Subscribe exactly one listener for this request type.
+     * Returns a function to unsubscribe.
      */
     subscribeToRequest(listener: ListenerFn) {
       listeners.add(listener);
@@ -61,26 +81,27 @@ export function createRequestStreamMessaging<Request, Response>() {
 
     /**
      * Send a request, optionally providing handlers for partial data and errors.
-     * Returns a Promise that resolves on `endStream()` or rejects on `failStream(...)`.
+     * Returns a Promise<Response["final"]> that resolves on endStream(...)
+     * or rejects on failStream(...).
      */
     sendRequest(
-      request: Request,
-      options: RequestStreamOptions<Response> = {},
-    ): Promise<void> {
+        request: Request,
+        options: RequestStreamOptions<Response> = {},
+    ): Promise<Response["final"]> {
       const { onData, onError } = options;
 
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<Response["final"]>((resolve, reject) => {
         // Check how many listeners we have
         const numListeners = listeners.size;
         if (numListeners === 0) {
           const err = new Error(
-            "No listener found in request-stream mode (expected exactly one).",
+              "No listener found in request-stream mode (expected exactly one).",
           );
           onError?.(err);
           return reject(err);
         } else if (numListeners > 1) {
           const err = new Error(
-            "Multiple listeners found in request-stream mode (expected exactly one).",
+              "Multiple listeners found in request-stream mode (expected exactly one).",
           );
           onError?.(err);
           return reject(err);
@@ -90,6 +111,7 @@ export function createRequestStreamMessaging<Request, Response>() {
         const cleanups = new Map<ListenerFn, MaybeCleanupFn>();
 
         for (const listener of listeners) {
+          // Invoke the listener
           const cleanup = listener({
             metadata: request,
 
@@ -97,12 +119,12 @@ export function createRequestStreamMessaging<Request, Response>() {
               onData?.(partialData);
             },
 
-            endStream: async () => {
+            endStream: async (finalData) => {
               // Successfully end the stream
               await Promise.resolve(); // next tick
-              resolve();
+              resolve(finalData);
               // Cleanup
-              for (const [_, cfn] of cleanups) {
+              for (const [, cfn] of cleanups) {
                 if (typeof cfn === "function") {
                   cfn();
                 }
@@ -111,12 +133,11 @@ export function createRequestStreamMessaging<Request, Response>() {
             },
 
             failStream: async (error) => {
-              // End the stream with an error
               onError?.(error);
               await Promise.resolve(); // next tick
               reject(error);
               // Cleanup
-              for (const [_, cfn] of cleanups) {
+              for (const [, cfn] of cleanups) {
                 if (typeof cfn === "function") {
                   cfn();
                 }
@@ -125,6 +146,7 @@ export function createRequestStreamMessaging<Request, Response>() {
             },
           });
 
+          // Store any cleanup function returned by the listener
           cleanups.set(listener, cleanup);
         }
       });
@@ -132,7 +154,14 @@ export function createRequestStreamMessaging<Request, Response>() {
   };
 }
 
+/**
+ * If you want to hook this into your existing "MessageSpec" approach,
+ * you can define a type alias that matches your new shape:
+ */
 export type StreamResponseMessaging<Message> =
-  Message extends MessageSpec<infer Request, infer Response>
-    ? ReturnType<typeof createRequestStreamMessaging<Request, Response>>
-    : never;
+// We now expect MessageSpec<Req, { partial: X; final: Y }>
+    Message extends MessageSpec<infer Req, infer Resp>
+        ? Resp extends { partial: unknown; final: unknown }
+            ? ReturnType<typeof createRequestStreamMessaging<Req, Resp>>
+            : never
+        : never;
