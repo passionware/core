@@ -174,3 +174,14 @@ export type MessageToStreamSubscriberPayload<Message> =
       ? MessageEventStreamPayload<Request, Response>
       : never
     : never;
+
+export type MessageToStreamApi<Message> =
+  Message extends MessageSpec<
+    infer Request,
+    { partial: infer Partial; final: infer Final }
+  >
+    ? (
+        request: Request,
+        options?: RequestStreamOptions<{ partial: Partial; final: Final }>,
+      ) => Promise<Final>
+    : never;

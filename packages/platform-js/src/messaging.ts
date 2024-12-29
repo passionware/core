@@ -223,7 +223,7 @@ export type FirstResponseMessaging<Message> =
     ? ReturnType<typeof createRequestFirstResponseMessaging<Request, Response>>
     : never;
 
-export type MessageToPromise<Message> =
+export type MessageToPromiseApi<Message> =
   Message extends MessageSpec<infer Request, infer Response>
     ? (request: Request) => Promise<Response>
     : never;
