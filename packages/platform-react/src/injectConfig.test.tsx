@@ -1,7 +1,7 @@
 /* @jest-environment jsdom */
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { ComponentType } from "react";
+import { describe, expect, it } from "vitest";
 import { injectConfig } from "./injectConfig";
 
 // A simple mock component to wrap

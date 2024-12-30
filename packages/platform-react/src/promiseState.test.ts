@@ -1,9 +1,9 @@
 /** @jest-environment jsdom */
-import { describe, it, expect, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
 import { mt, rd } from "@passionware/monads";
-import {} from "@passionware/platform-js";
+import { act, renderHook } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { promiseState } from "./promiseState";
+
 describe("promiseState", () => {
   describe("useRemoteData", () => {
     it("should initialize with idle state", () => {
@@ -90,7 +90,7 @@ describe("promiseState", () => {
 
     it("should set state to success with request and response when the mutation resolves", async () => {
       const { result } = renderHook(() =>
-        promiseState.useMutation((req) => Promise.resolve("response")),
+        promiseState.useMutation(() => Promise.resolve("response")),
       );
 
       await act(async () => {
@@ -102,7 +102,7 @@ describe("promiseState", () => {
 
     it("should set state to error with request when the mutation rejects", async () => {
       const { result } = renderHook(() =>
-        promiseState.useMutation((req) =>
+        promiseState.useMutation(() =>
           Promise.reject(new Error("mutation error")),
         ),
       );
@@ -212,7 +212,7 @@ describe("promiseState", () => {
 
     it("should set state to success with request and response when mutation resolves", async () => {
       const onStoreUpdate = vi.fn();
-      const syncMutate = promiseState.syncMutation(onStoreUpdate, (req) =>
+      const syncMutate = promiseState.syncMutation(onStoreUpdate, () =>
         Promise.resolve("response"),
       );
 
@@ -227,7 +227,7 @@ describe("promiseState", () => {
 
     it("should set state to error with request when mutation rejects", async () => {
       const onStoreUpdate = vi.fn();
-      const syncMutate = promiseState.syncMutation(onStoreUpdate, (req) =>
+      const syncMutate = promiseState.syncMutation(onStoreUpdate, () =>
         Promise.reject(new Error("mutation error")),
       );
 

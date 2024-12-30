@@ -2,7 +2,6 @@ import classNames from "classnames";
 import { cloneElement, ReactElement, ReactNode } from "react";
 
 const wrapNode = Symbol("wrapNode" + "");
-const addClass = Symbol("addClass");
 
 /**
  * Creates an element that will indicate that the default layout wapper should be skipped.

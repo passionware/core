@@ -4,7 +4,6 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { cf, cfe } from "./componentFactory";
 
-
 describe("cf", () => {
   describe("cf component rendering", () => {
     it("renders a div with correct text", () => {
@@ -84,7 +83,7 @@ describe("cf", () => {
         required: string;
         optional?: string;
       }
-      function BaseComponent(props: Props) {
+      function BaseComponent(_props: Props) {
         return <div />;
       }
 
@@ -96,6 +95,7 @@ describe("cf", () => {
         optional: "optional",
       });
 
+      // @ts-expect-error required prop is missing
       const test1 = <ComponentWithRequired optional="value" />;
       // @ts-expect-error required prop is missing
       const test2 = <ComponentWithoutRequired optional="value" />;

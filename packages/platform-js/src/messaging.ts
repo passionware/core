@@ -46,7 +46,7 @@ export function createRequestResponseMessaging<Request, Response>() {
                 // edge case - someone in the listener synchronously calls the cleanup function so cleanup is not set yet
                 await Promise.resolve();
                 resolve(response);
-                for (const [listenerOfCleanup, cleanup] of cleanups) {
+                for (const [, cleanup] of cleanups) {
                   // void functions can return anything, ie promises, so we need to ignore the return value in this case
                   if (cleanup && typeof cleanup === "function") {
                     cleanup();
@@ -160,7 +160,7 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
             MaybeCleanupFnWithSource
           >();
 
-          listeners.forEach((listener, index) => {
+          listeners.forEach((listener) => {
             const cleanup = listener({
               metadata: request,
               resolveCallback: async (response) => {

@@ -1,4 +1,4 @@
-import { KeysAsDotNotation } from "deep-utility-types";
+import { KeysAsDotNotation } from "deep-utility-types/src/util-types/keys-as-dot-notation";
 import { useId, useMemo } from "react";
 
 export function useIdPool<KeySpec extends object>(fieldsShape: KeySpec) {
@@ -30,7 +30,7 @@ export function useDynamicIdPool<T>(): SpecToPool<T> {
   const proxy = new Proxy(
     {},
     {
-      get(target: any, prop: SpecToPaths<T>) {
+      get(_: any, prop: SpecToPaths<T>) {
         return `${base}-${prop}`;
       },
     },

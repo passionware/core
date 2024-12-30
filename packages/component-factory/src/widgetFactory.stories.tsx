@@ -103,7 +103,7 @@ const MockPaymentWidget = createPaymentWidget<WidgetInjectableProps>({
         1000,
       ),
     ),
-  useCan: (action, resource, { can }) => can,
+  useCan: (_action, _resource, { can }) => can,
 }).withIsolatedProps(["userId", "can", "shouldFail"]);
 
 const meta = {

@@ -104,7 +104,7 @@ const MockPaymentWidget = widgetBuilder
           ),
         );
       },
-      useCan: (action, resource) => useProps().can,
+      useCan: (_action, _resource) => useProps().can,
     }),
   );
 

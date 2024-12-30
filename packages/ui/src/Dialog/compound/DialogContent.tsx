@@ -1,14 +1,13 @@
-import * as React from 'react';
-import { HTMLProps, forwardRef } from 'react';
 import {
   FloatingFocusManager,
   FloatingPortal,
   useMergeRefs,
   useTransitionStyles,
-} from '@floating-ui/react';
-import classNames from 'classnames';
-import { Overlay } from '../primitives/DialogOverlay';
-import { useDialogContext } from './DialogContext';
+} from "@floating-ui/react";
+import classNames from "classnames";
+import { forwardRef, HTMLProps } from "react";
+import { Overlay } from "../primitives/DialogOverlay";
+import { useDialogContext } from "./DialogContext";
 
 export const DialogContent = forwardRef<
   HTMLDivElement,
@@ -25,11 +24,11 @@ export const DialogContent = forwardRef<
     duration: { open: 400, close: 100 },
     initial: {
       opacity: 0,
-      transform: 'translateY(0.25rem) scale(0.95)',
+      transform: "translateY(0.25rem) scale(0.95)",
     },
     close: {
       opacity: 0,
-      transform: 'translateY(-0.25rem) scale(1.05)',
+      transform: "translateY(-0.25rem) scale(1.05)",
     },
   });
 
@@ -47,7 +46,7 @@ export const DialogContent = forwardRef<
                 ...props,
                 className: classNames(
                   props.className,
-                  'h-screen flex flex-col items-center justify-center'
+                  "h-screen flex flex-col items-center justify-center",
                 ),
               })}
             >

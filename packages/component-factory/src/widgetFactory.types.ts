@@ -2,9 +2,7 @@ type AppendArgument<F, Arg> = F extends (...args: infer Args) => infer R
   ? (...args: [...Args, Arg]) => R
   : never;
 
-type IsHook<K> = K extends `use${Capitalize<string>}${infer Rest}`
-  ? true
-  : false;
+type IsHook<K> = K extends `use${Capitalize<string>}` ? true : false;
 
 export type EnhanceWithHook<T, HookArg> = {
   [K in keyof T]: IsHook<K> extends true
@@ -40,28 +38,28 @@ export function injectArg<T, HookArg>(
   }
   return enhancedHooks;
 }
+//
+// // Usage Example
+// interface OriginalHooks {
+//   useData: (url: string) => { data: string; loading: boolean };
+//   useEffect: () => void;
+//   useValue: () => number;
+//   useLatestFeatures: boolean;
+//   nonHookField: string;
+//   user: () => { name: string }; // Not a hook, does not get enhanced
+//   userData: () => { data: any }; // Not starting with 'use' followed by an uppercase letter
+// }
 
-// Usage Example
-interface OriginalHooks {
-  useData: (url: string) => { data: string; loading: boolean };
-  useEffect: () => void;
-  useValue: () => number;
-  useLatestFeatures: boolean;
-  nonHookField: string;
-  user: () => { name: string }; // Not a hook, does not get enhanced
-  userData: () => { data: any }; // Not starting with 'use' followed by an uppercase letter
-}
-
-type EnhancedHooks = EnhanceWithHook<OriginalHooks, { userId: number }>;
-
-const enhancedHooks: EnhancedHooks = {
-  nonHookField: "nonHookField",
-  useData: (url: string, { userId }) => ({ data: url + userId, loading: true }),
-  user: () => ({ name: "name" }),
-  userData: () => ({ data: "data" }),
-  useEffect: (props) => {
-    props.userId++;
-  },
-  useValue: (a) => 1,
-  useLatestFeatures: true,
-};
+// type EnhancedHooks = EnhanceWithHook<OriginalHooks, { userId: number }>;
+//
+// const enhancedHooks: EnhancedHooks = {
+//   nonHookField: "nonHookField",
+//   useData: (url: string, { userId }) => ({ data: url + userId, loading: true }),
+//   user: () => ({ name: "name" }),
+//   userData: () => ({ data: "data" }),
+//   useEffect: (props) => {
+//     props.userId++;
+//   },
+//   useValue: (a) => 1,
+//   useLatestFeatures: true,
+// };

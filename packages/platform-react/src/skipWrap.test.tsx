@@ -1,7 +1,6 @@
 // @jest-environment jsdom
 import { render } from "@testing-library/react";
 import assert from "node:assert";
-import React from "react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 import { adjustWrapper, skipWrap, withWrapperClass, wrap } from "./skipWrap";

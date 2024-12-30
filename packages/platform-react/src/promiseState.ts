@@ -1,6 +1,5 @@
 import { mt, MutationData, rd, RemoteData } from "@passionware/monads";
 import { ensureError } from "@passionware/platform-js";
-import { SimpleStore } from "@passionware/simple-store/src";
 import { useEffect, useRef, useState } from "react";
 
 function useRemoteData<Response>() {

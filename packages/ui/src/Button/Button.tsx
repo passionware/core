@@ -1,18 +1,13 @@
 import { SkipWrapNode, wrap } from "@passionware/platform-react";
 import { Overwrite } from "@passionware/platform-ts";
 import classNames from "classnames";
-import React, { ComponentPropsWithoutRef, forwardRef, ReactNode } from "react";
+import { ComponentPropsWithoutRef, forwardRef, ReactNode } from "react";
 import styles from "./Button.module.scss";
 
 export type ButtonProps = Overwrite<
   ComponentPropsWithoutRef<"button">,
   {
-    colorVariant?:
-      | "primary"
-      | "secondary"
-      | "danger"
-      | "success"
-      | "warning"
+    colorVariant?: "primary" | "secondary" | "danger" | "success" | "warning";
     styleVariant?: "solid" | "flat" | "outline" | "ghost";
     sizeVariant?: "md" | "sm";
     leftSlot?: ReactNode;

@@ -39,6 +39,7 @@ type MaybeCleanupFn = void | (() => void);
 export type RequestStreamOptions<
   Response extends { partial: unknown; final: unknown },
 > = {
+  // todo: we. may want onData to return a promise of a generic chunk response, so the subscriber can make a decision on how to handle it,
   onData?: (partial: Response["partial"]) => void;
   onError?: (err: Error) => void;
 };
