@@ -67,7 +67,7 @@ jobs:
       - run: npm ci
       - run: npm i @rollup/rollup-linux-x64-gnu
       - run: npm run build
-      - run: npm run changeset -- version
-      - run: npm run changeset -- publish
+      - run: npm run changeset -- version --snapshot dev
+      - run: npm run changeset -- publish --tag dev
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN2}}
