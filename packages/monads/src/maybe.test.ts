@@ -1,5 +1,5 @@
 // maybe.test.ts
-import { assertType, AssertType, describe, expect, it, vi } from "vitest";
+import { assertType, describe, expect, it, vi } from "vitest";
 import { maybe } from "./maybe";
 
 // Adjust the import path as necessary

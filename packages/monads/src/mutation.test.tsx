@@ -92,7 +92,7 @@ describe("Mutation Utilities", () => {
     const errorMutation = mt.ofError(request, new Error("error"));
     const result = mt.mapError(
       errorMutation,
-      (error) => new Error("mapped error"),
+      () => new Error("mapped error"),
     );
     expect(result).toEqual({
       status: "error",
@@ -106,7 +106,7 @@ describe("Mutation Utilities", () => {
     const successMutation = mt.ofSuccess(request, {});
     const result = mt.mapError(
       successMutation,
-      (error) => new Error("mapped error"),
+      () => new Error("mapped error"),
     );
     expect(result).toBe(successMutation);
   });
@@ -114,7 +114,7 @@ describe("Mutation Utilities", () => {
   it("mapErrorMonadic returns the mapped error mutation if the mutation is in error state", () => {
     const request = { user: "admin" };
     const errorMutation = mt.ofError(request, new Error("error"));
-    const result = mt.mapErrorMonadic(errorMutation, (error) =>
+    const result = mt.mapErrorMonadic(errorMutation, () =>
       mt.ofError(request, new Error("mapped error")),
     );
     expect(result).toEqual({
@@ -127,7 +127,7 @@ describe("Mutation Utilities", () => {
   it("mapErrorMonadic returns the original mutation if the mutation is not in error state", () => {
     const request = { user: "admin" };
     const successMutation = mt.ofSuccess(request, {});
-    const result = mt.mapErrorMonadic(successMutation, (error) =>
+    const result = mt.mapErrorMonadic(successMutation, () =>
       mt.ofError(request, new Error("mapped error")),
     );
     expect(result).toBe(successMutation);

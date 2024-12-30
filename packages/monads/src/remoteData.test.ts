@@ -172,7 +172,7 @@ describe("RemoteData Utility", () => {
       ),
     ).toEqual(rd.ofError(new Error("Test error mapped")));
 
-    expect(rd.mapErrorMonadic(errorData, (error) => rd.ofPending())).toEqual(
+    expect(rd.mapErrorMonadic(errorData, () => rd.ofPending())).toEqual(
       rd.ofPending(),
     );
   });
@@ -418,7 +418,7 @@ describe("RemoteData Utility", () => {
 
       it("wraps mapping errors in MappingError for success data", () => {
         const successData = rd.of(10);
-        const errorThrowingRenderer = (data: number) => {
+        const errorThrowingRenderer = () => {
           throw new Error("Mapping failure");
         };
         const result = rd
@@ -644,7 +644,7 @@ describe("RemoteData Utility", () => {
       });
       it("success state", () => {
         const effect = vi.fn();
-        const screen = renderHook(
+        renderHook(
           (p) => rd.useDataEffect(p.remoteData, effect),
           {
             initialProps: {
