@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { Maybe } from "@passionware/monads";
+import { useEffect, useRef } from "react";
 
 export type SimpleEventListener<E, Metadata = undefined> = [Metadata] extends [
   undefined,
@@ -66,13 +67,22 @@ export const createInspectableEvent = <
 };
 
 export const useSimpleEventSubscription = <E, Metadata>(
-  subscribe: SimpleEventSubscribe<E, Metadata>,
+  subscribe: Maybe<SimpleEventSubscribe<E, Metadata>>,
   listener: SimpleEventListener<E, Metadata>,
 ) => {
+  const lastListener = useRef(listener);
+  lastListener.current = listener;
+
   useEffect(() => {
+    if (!subscribe) return;
+
+    const listener = ((e, metadata) => {
+      lastListener.current(e, metadata);
+    }) as SimpleEventListener<E, Metadata>;
+
     const unsubscribe = subscribe(listener);
     return () => unsubscribe();
-  }, [subscribe, listener]);
+  }, [subscribe]);
 };
 
 /**

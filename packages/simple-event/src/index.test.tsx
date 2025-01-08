@@ -190,6 +190,39 @@ describe("simple-event", () => {
       event.emit();
       expect(listener).toBeCalledTimes(1);
     });
+
+    it("should allow to pass absent subscribe", () => {
+      const listener = vi.fn();
+      function Component() {
+        useSimpleEventSubscription(undefined, listener);
+        return null;
+      }
+      render(<Component />);
+      expect(listener).not.toBeCalled();
+    });
+
+    it("should allow to switch into absent subscribe", () => {
+      const event = createSimpleEvent<number>();
+      const listener = vi.fn();
+      function Component({ subscribe }: { subscribe: boolean }) {
+        useSimpleEventSubscription(
+          subscribe ? event.addListener : undefined,
+          listener,
+        );
+        return null;
+      }
+      const screen = render(<Component subscribe={true} />);
+      event.emit(0);
+      expect(listener).toBeCalledWith(0, undefined);
+      screen.rerender(<Component subscribe={false} />);
+      listener.mockClear();
+      event.emit(1);
+      expect(listener).not.toBeCalled();
+      screen.rerender(<Component subscribe={true} />);
+      listener.mockClear();
+      event.emit(2);
+      expect(listener).toBeCalledWith(2, undefined);
+    });
   });
 
   describe("inspectableEvent", () => {

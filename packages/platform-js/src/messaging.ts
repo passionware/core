@@ -128,7 +128,7 @@ export function createRequestCollectMessaging<Request, Response>() {
 export function createRequestFirstResponseMessaging<Request, Response>() {
   type MessageEventPayload = {
     metadata: Request;
-    resolveCallback: (response: Response) => void;
+    resolveCallback: (response: Response) => Promise<void>;
   };
 
   const listeners: Set<
