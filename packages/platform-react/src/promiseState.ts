@@ -97,18 +97,34 @@ function syncMutation<Request, Response>(
   onStoreUpdate: (payload: MutationData<Request, Response>) => void,
   promiseFactory: (request: Request) => Promise<Response>,
 ) {
+  let cancelToken = 0; // Token to track active mutations
+
+  // Helper function to update state only if the token is valid
+  const updateStateIfValid = (currentToken: number, updateFn: () => void) => {
+    if (cancelToken === currentToken) {
+      updateFn();
+    }
+  };
+
   return {
     reset: () => {
+      cancelToken++; // Invalidate any ongoing mutations
       onStoreUpdate(mt.ofIdle());
     },
     track: async (request: Request) => {
+      const currentToken = ++cancelToken; // Increment token for new mutation
+
       onStoreUpdate(mt.ofPending(request));
       try {
         const data = await promiseFactory(request);
-        onStoreUpdate(mt.ofSuccess(request, data));
+        updateStateIfValid(currentToken, () =>
+          onStoreUpdate(mt.ofSuccess(request, data)),
+        );
         return data;
       } catch (error) {
-        onStoreUpdate(mt.ofError(request, ensureError(error)));
+        updateStateIfValid(currentToken, () =>
+          onStoreUpdate(mt.ofError(request, ensureError(error))),
+        );
         throw error;
       }
     },
@@ -118,17 +134,31 @@ function syncMutation<Request, Response>(
 function syncRemoteData<Response>(
   onStoreUpdate: (payload: RemoteData<Response>) => void,
 ) {
+  let cancelToken = 0; // Token to track active promises
+
+  // Helper function to update state only if the token is valid
+  const updateStateIfValid = (currentToken: number, updateFn: () => void) => {
+    if (cancelToken === currentToken) {
+      updateFn();
+    }
+  };
+
   return {
     reset: () => {
+      cancelToken++; // Invalidate any ongoing promises
       onStoreUpdate(mt.ofIdle());
     },
     track: async (promise: Promise<Response>) => {
+      const currentToken = ++cancelToken; // Increment token for new promise
+
       onStoreUpdate(rd.ofPending());
       try {
         const data = await promise;
-        onStoreUpdate(rd.of(data));
+        updateStateIfValid(currentToken, () => onStoreUpdate(rd.of(data)));
       } catch (error) {
-        onStoreUpdate(rd.ofError(ensureError(error)));
+        updateStateIfValid(currentToken, () =>
+          onStoreUpdate(rd.ofError(ensureError(error))),
+        );
       }
     },
   };

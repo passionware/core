@@ -243,6 +243,31 @@ describe("promiseState", () => {
       // Verify the state remains idle, unaffected by the resolved mutation
       expect(result.current.state).toEqual(mt.ofIdle());
     });
+
+    it("syncRemoteData should not update state from previous promise after reset", async () => {
+      const onStoreUpdate = vi.fn();
+      const syncData = promiseState.syncRemoteData(onStoreUpdate);
+
+      const firstPromise = new Promise((resolve) =>
+        setTimeout(() => resolve("first response"), 100),
+      );
+
+      // Start tracking the first promise
+      void syncData.track(firstPromise);
+
+      // Reset before the promise resolves
+      syncData.reset();
+
+      // Ensure reset sets the state to idle
+      expect(onStoreUpdate).toHaveBeenLastCalledWith(mt.ofIdle());
+
+      // Allow the first promise to resolve
+      await firstPromise;
+
+      // Ensure the state remains idle and is not updated by the first promise
+      expect(onStoreUpdate).toHaveBeenCalledTimes(2); // Only pending and idle
+      expect(onStoreUpdate).not.toHaveBeenCalledWith(rd.of("first response"));
+    });
   });
 
   describe("syncMutation", () => {
@@ -301,6 +326,37 @@ describe("promiseState", () => {
 
       expect(onStoreUpdate).toHaveBeenLastCalledWith(
         mt.ofError("request", new Error("mutation error")),
+      );
+    });
+
+    it("syncMutation should not update state from previous mutation after reset", async () => {
+      const onStoreUpdate = vi.fn();
+      const syncMutate = promiseState.syncMutation(
+        onStoreUpdate,
+        (req: string) =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve(`${req} response`), 100),
+          ),
+      );
+
+      const firstRequest = "first request";
+
+      // Start tracking the first mutation
+      syncMutate.track(firstRequest);
+
+      // Reset before the mutation resolves
+      syncMutate.reset();
+
+      // Ensure reset sets the state to idle
+      expect(onStoreUpdate).toHaveBeenLastCalledWith(mt.ofIdle());
+
+      // Allow the first mutation to resolve
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate delay
+
+      // Ensure the state remains idle and is not updated by the first mutation
+      expect(onStoreUpdate).toHaveBeenCalledTimes(2); // Only pending and idle
+      expect(onStoreUpdate).not.toHaveBeenCalledWith(
+        mt.ofSuccess(firstRequest, "first request response"),
       );
     });
   });
