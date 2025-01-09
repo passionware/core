@@ -25,6 +25,7 @@ function useRemoteData<Response>() {
     state,
     reset: () => {
       setState(mt.ofIdle());
+      cancelTokenRef.current++;
     },
     track: async (promise: Promise<Response>) => {
       const currentToken = ++cancelTokenRef.current;
@@ -70,6 +71,7 @@ function useMutation<Request, Response>(
     state,
     reset: () => {
       setState(mt.ofIdle());
+      cancelTokenRef.current++;
     },
     track: async (request: Request) => {
       const currentToken = ++cancelTokenRef.current;

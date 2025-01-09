@@ -66,6 +66,35 @@ describe("promiseState", () => {
 
       expect(result.current.state).toEqual(mt.ofIdle());
     });
+
+    it("useRemoteData should not update state from previous promise after reset", async () => {
+      const { result, rerender } = renderHook(() =>
+        promiseState.useRemoteData(),
+      );
+
+      const firstPromise = new Promise((resolve) =>
+        setTimeout(() => resolve("first response"), 100),
+      );
+
+      act(() => {
+        result.current.track(firstPromise);
+      });
+
+      // Reset before the first promise resolves
+      act(() => {
+        result.current.reset();
+      });
+
+      // Verify the state is reset to idle immediately after reset
+      expect(result.current.state).toEqual(mt.ofIdle());
+
+      // Allow the first promise to resolve
+      await firstPromise;
+      rerender();
+
+      // Verify the state remains idle, unaffected by the resolved promise
+      expect(result.current.state).toEqual(mt.ofIdle());
+    });
   });
 
   describe("useMutationState", () => {
@@ -180,6 +209,39 @@ describe("promiseState", () => {
       expect(onStoreUpdate).toHaveBeenLastCalledWith(
         rd.ofError(new Error("test error")),
       );
+    });
+
+    it("useMutation should not update state from previous mutation after reset", async () => {
+      const { result, rerender } = renderHook(() =>
+        promiseState.useMutation(
+          (req) =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve(`${req} response`), 100),
+            ),
+        ),
+      );
+
+      const firstMutation = "first request";
+
+      act(() => {
+        result.current.track(firstMutation);
+      });
+
+      // Reset before the mutation resolves
+      act(() => {
+        result.current.reset();
+      });
+      rerender();
+
+      // Verify the state is reset to idle immediately after reset
+      expect(result.current.state).toEqual(mt.ofIdle());
+
+      // Allow the first mutation to resolve
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate mutation delay
+      rerender();
+
+      // Verify the state remains idle, unaffected by the resolved mutation
+      expect(result.current.state).toEqual(mt.ofIdle());
     });
   });
 
