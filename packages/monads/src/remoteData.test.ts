@@ -331,6 +331,66 @@ describe("RemoteData Utility", () => {
     });
   });
 
+  describe("combineAll", () => {
+    it("returns an empty success when the array is empty", () => {
+      expect(rd.combineAll([])).toEqual(rd.of([]));
+    });
+
+    it("combines all success states correctly", () => {
+      expect(rd.combineAll([rd.of(1), rd.of(2), rd.of(3)])).toEqual(
+        rd.of([1, 2, 3]),
+      );
+    });
+
+    it("returns pending if any state is pending", () => {
+      expect(rd.combineAll([rd.of(1), rd.ofPending(), rd.of(3)])).toEqual(
+        rd.ofPending(),
+      );
+    });
+
+    it("returns an error if any state is an error", () => {
+      const error = new Error("Error");
+      expect(rd.combineAll([rd.of(1), rd.ofError(error), rd.of(3)])).toEqual(
+        rd.ofError(
+          new RemoteCombinedError("Errors in combined remotes: Error", {
+            0: error,
+          }),
+        ),
+      );
+    });
+
+    it("returns an error if both idle and success states are present", () => {
+      expect(rd.combineAll([rd.ofIdle(), rd.of(2)])).toEqual(
+        rd.ofError(
+          new Error("Combine does not support idle and success together"),
+        ),
+      );
+    });
+
+    it("returns pending for all pending states", () => {
+      expect(rd.combineAll([rd.ofPending(), rd.ofPending()])).toEqual(
+        rd.ofPending(),
+      );
+    });
+
+    it("returns idle for all idle states", () => {
+      expect(rd.combineAll([rd.ofIdle(), rd.ofIdle()])).toEqual(rd.ofIdle());
+    });
+
+    it("returns combined error for multiple error states", () => {
+      const error1 = new Error("Error 1");
+      const error2 = new Error("Error 2");
+      expect(rd.combineAll([rd.ofError(error1), rd.ofError(error2)])).toEqual(
+        rd.ofError(
+          new RemoteCombinedError(
+            "Errors in combined remotes: Error 1, Error 2",
+            { 0: error1, 1: error2 },
+          ),
+        ),
+      );
+    });
+  });
+
   describe("journey Function", () => {
     const successData = rd.of("success");
     const errorData = rd.ofError(new Error("Test error"));
@@ -422,10 +482,10 @@ describe("RemoteData Utility", () => {
           throw new Error("Mapping failure");
         };
         const result = rd
-            .journey(successData)
-            .wait(() => "Loading")
-            .catch((e) => e)
-            .map(errorThrowingRenderer);
+          .journey(successData)
+          .wait(() => "Loading")
+          .catch((e) => e)
+          .map(errorThrowingRenderer);
         expect(result).toEqual(new MappingError(new Error("Mapping failure")));
       });
     });
@@ -644,14 +704,11 @@ describe("RemoteData Utility", () => {
       });
       it("success state", () => {
         const effect = vi.fn();
-        renderHook(
-          (p) => rd.useDataEffect(p.remoteData, effect),
-          {
-            initialProps: {
-              remoteData: rd.widen<number>(rd.of(1)),
-            },
+        renderHook((p) => rd.useDataEffect(p.remoteData, effect), {
+          initialProps: {
+            remoteData: rd.widen<number>(rd.of(1)),
           },
-        );
+        });
         expect(effect).toHaveBeenCalledTimes(1);
       });
     });

@@ -659,6 +659,59 @@ export const rd = {
     }
     return rd.of(finalState.result);
   },
+  combineAll: <T extends RemoteData<any>[]>(
+    remotes: T,
+  ): RemoteData<T[number] extends RemoteData<infer U> ? U : never[]> => {
+    if (remotes.length === 0) {
+      return rd.of([] as T[number] extends RemoteData<infer U> ? U : never[]);
+    }
+
+    let hasIdle = false;
+    let hasPending = false;
+    let hasError = false;
+    let errors: Error[] = [];
+    let results: (T[number] extends RemoteData<infer U> ? U : never)[] = [];
+
+    for (const remote of remotes) {
+      if (rd.isIdle(remote)) {
+        hasIdle = true;
+      } else if (rd.isPending(remote)) {
+        hasPending = true;
+      } else if (rd.isError(remote)) {
+        hasError = true;
+        errors.push(remote.error);
+      } else if (rd.isSuccess(remote)) {
+        results.push(remote.data);
+      }
+    }
+
+    if (hasError) {
+      return rd.ofError(
+        new RemoteCombinedError(
+          `Errors in combined remotes: ${errors.map((e) => e.message).join(", ")}`,
+          Object.fromEntries(errors.map((e, i) => [i, e])),
+        ),
+      );
+    }
+
+    if (hasIdle && results.length > 0) {
+      return rd.ofError(
+        new Error("Combine does not support idle and success together"),
+      );
+    }
+
+    if (hasPending) {
+      return rd.ofPending();
+    }
+
+    if (hasIdle) {
+      return rd.ofIdle();
+    }
+
+    return rd.of(
+      results as T[number] extends RemoteData<infer U> ? U : never[],
+    );
+  },
 };
 
 export class RemoteCombinedError extends Error {
