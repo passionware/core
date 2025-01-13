@@ -661,9 +661,9 @@ export const rd = {
   },
   combineAll: <T extends RemoteData<any>[]>(
     remotes: T,
-  ): RemoteData<T[number] extends RemoteData<infer U> ? U : never[]> => {
+  ): RemoteData<T[number] extends RemoteData<infer U> ? U[] : never[]> => {
     if (remotes.length === 0) {
-      return rd.of([] as T[number] extends RemoteData<infer U> ? U : never[]);
+      return rd.of([] as T[number] extends RemoteData<infer U> ? U[] : never[]);
     }
 
     let hasIdle = false;
@@ -709,7 +709,7 @@ export const rd = {
     }
 
     return rd.of(
-      results as T[number] extends RemoteData<infer U> ? U : never[],
+      results as T[number] extends RemoteData<infer U> ? U[] : never[],
     );
   },
 };

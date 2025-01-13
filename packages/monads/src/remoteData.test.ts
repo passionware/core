@@ -337,9 +337,9 @@ describe("RemoteData Utility", () => {
     });
 
     it("combines all success states correctly", () => {
-      expect(rd.combineAll([rd.of(1), rd.of(2), rd.of(3)])).toEqual(
-        rd.of([1, 2, 3]),
-      );
+      const combineAll = rd.combineAll([rd.of(1), rd.of(2), rd.of(3)]);
+      expect(rd.getOrThrow(combineAll).length).toBe(3);
+      expect(combineAll).toEqual(rd.of([1, 2, 3]));
     });
 
     it("returns pending if any state is pending", () => {
