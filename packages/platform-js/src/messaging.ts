@@ -75,7 +75,10 @@ export function createRequestResponseMessaging<Request, Response>(): Messaging<{
 export function createRequestCollectMessaging<
   Message extends MessageSpec<unknown, unknown>,
 >(): CollectResponseMessaging<Message>;
-export function createRequestCollectMessaging<Request, Response>(): CollectResponseMessaging<{
+export function createRequestCollectMessaging<
+  Request,
+  Response,
+>(): CollectResponseMessaging<{
   request: Request;
   response: Response;
 }>;
@@ -144,10 +147,13 @@ export function createRequestCollectMessaging<Request, Response>() {
 export function createRequestFirstResponseMessaging<
   Message extends MessageSpec<unknown, unknown>,
 >(): FirstResponseMessaging<Message>;
-export function createRequestFirstResponseMessaging<Request, Response>(): FirstResponseMessaging<{
-    request: Request;
-    response: Response;
-}>
+export function createRequestFirstResponseMessaging<
+  Request,
+  Response,
+>(): FirstResponseMessaging<{
+  request: Request;
+  response: Response;
+}>;
 export function createRequestFirstResponseMessaging<Request, Response>() {
   type MessageEventPayload = {
     request: Request;
@@ -231,35 +237,36 @@ export type MessageSpec<TInferRequest, TInferResponse> = {
   request: TInferRequest;
   response: TInferResponse;
 };
-export type Messaging<Message> =
-  Message extends MessageSpec<infer Request, infer Response>
-    ? {
-        subscribeToRequest: (
-          listener: (payload: MessageEventPayload<Request, Response>) => void,
-        ) => () => void;
-        sendRequest: (request: Request) => Promise<Response>;
-      }
-    : never;
+export type Messaging<Message extends MessageSpec<unknown, unknown>> = {
+  subscribeToRequest: (
+    listener: (
+      payload: MessageEventPayload<Message["request"], Message["response"]>,
+    ) => void,
+  ) => () => void;
+  sendRequest: (request: Message["request"]) => Promise<Message["response"]>;
+};
 
-export type CollectResponseMessaging<Message> =
-  Message extends MessageSpec<infer Request, infer Response>
-    ? {
-        subscribeToRequest: (
-          listener: (payload: MessageEventPayload<Request, Response>) => void,
-        ) => () => void;
-        sendRequest: (request: Request) => Promise<Response[]>;
-      }
-    : never;
+export type CollectResponseMessaging<
+  Message extends MessageSpec<unknown, unknown>,
+> = {
+  subscribeToRequest: (
+    listener: (
+      payload: MessageEventPayload<Message["request"], Message["response"]>,
+    ) => void,
+  ) => () => void;
+  sendRequest: (request: Message["request"]) => Promise<Message["response"][]>;
+};
 
-export type FirstResponseMessaging<Message> =
-  Message extends MessageSpec<infer Request, infer Response>
-    ? {
-        subscribeToRequest: (
-          listener: (payload: MessageEventPayload<Request, Response>) => void,
-        ) => () => void;
-        sendRequest: (request: Request) => Promise<Response>;
-      }
-    : never;
+export type FirstResponseMessaging<
+  Message extends MessageSpec<unknown, unknown>,
+> = {
+  subscribeToRequest: (
+    listener: (
+      payload: MessageEventPayload<Message["request"], Message["response"]>,
+    ) => void,
+  ) => () => void;
+  sendRequest: (request: Message["request"]) => Promise<Message["response"]>;
+};
 
 export type MessageToPromiseApi<Message> =
   Message extends MessageSpec<infer Request, infer Response>

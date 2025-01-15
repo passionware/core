@@ -168,38 +168,32 @@ export function createRequestStreamMessaging<
  * If you want to hook this into your existing "MessageSpec" approach,
  * you can define a type alias that matches your new shape:
  */
-export type StreamResponseMessaging<Message> =
-  // We now expect MessageSpec<Req, { partial: X; final: Y }>
-  Message extends MessageSpec<infer Req, infer Resp>
-    ? Resp extends { partial: unknown; final: unknown }
-      ? {
-          subscribeToRequest: (
-            listener: (
-              payload: MessageEventStreamPayload<Req, Resp>,
-            ) => MaybeCleanupFn,
-          ) => () => void;
-          sendRequest: (
-            request: Req,
-            options?: RequestStreamOptions<Resp>,
-          ) => Promise<Resp["final"]>;
-        }
-      : never
-    : never;
+export type StreamResponseMessaging<
+  Message extends MessageSpec<unknown, { partial: unknown; final: unknown }>,
+> = {
+  subscribeToRequest: (
+    listener: (
+      payload: MessageEventStreamPayload<
+        Message["request"],
+        Message["response"]
+      >,
+    ) => MaybeCleanupFn,
+  ) => () => void;
+  sendRequest: (
+    request: Message["request"],
+    options?: RequestStreamOptions<Message["response"]>,
+  ) => Promise<Message["response"]["final"]>;
+};
 
-export type MessageToStreamSubscriberPayload<Message> =
-  Message extends MessageSpec<infer Request, infer Response>
-    ? Response extends { partial: unknown; final: unknown }
-      ? MessageEventStreamPayload<Request, Response>
-      : never
-    : never;
-
-export type MessageToStreamApi<Message> =
-  Message extends MessageSpec<
-    infer Request,
-    { partial: infer Partial; final: infer Final }
-  >
-    ? (
-        request: Request,
-        options?: RequestStreamOptions<{ partial: Partial; final: Final }>,
-      ) => Promise<Final>
-    : never;
+export type MessageToStreamSubscriberPayload<
+  Message extends MessageSpec<unknown, { partial: unknown; final: unknown }>,
+> = MessageEventStreamPayload<Message["request"], Message["response"]>;
+export type MessageToStreamApi<
+  Message extends MessageSpec<unknown, { partial: unknown; final: unknown }>,
+> = (
+  request: Request,
+  options?: RequestStreamOptions<{
+    partial: Message["response"]["partial"];
+    final: Message["response"]["final"];
+  }>,
+) => Promise<Message["response"]["final"]>;
