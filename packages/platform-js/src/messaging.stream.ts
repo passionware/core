@@ -191,7 +191,7 @@ export type MessageToStreamSubscriberPayload<
 export type MessageToStreamApi<
   Message extends MessageSpec<unknown, { partial: unknown; final: unknown }>,
 > = (
-  request: Request,
+  request: Message["request"],
   options?: RequestStreamOptions<{
     partial: Message["response"]["partial"];
     final: Message["response"]["final"];
