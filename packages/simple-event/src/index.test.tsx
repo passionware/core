@@ -103,6 +103,47 @@ describe("simple-event", () => {
       expect(listener2).toHaveBeenCalledTimes(1);
       expect(listener3).toHaveBeenCalledTimes(1);
     });
+
+    it("waitFor should resolve when predicate is true", async () => {
+      const { waitFor, emit } = createSimpleEvent<number>();
+      const promise = waitFor((value) => value === 5);
+
+      let resolved = false;
+      promise.then(() => (resolved = true));
+
+      emit(3);
+
+      await Promise.resolve();
+      expect(resolved).toBe(false);
+      emit(5);
+      await Promise.resolve();
+      expect(resolved).toBe(true);
+      await expect(promise).resolves.toBe(5);
+    });
+  });
+
+  it("map should transform values", () => {
+    const { map, emit } = createSimpleEvent<number>();
+    const listener = vi.fn();
+    const mapped = map((value) => value * 2);
+    mapped.addListener(listener);
+    emit(3);
+    emit(4);
+    expect(listener).toBeCalledWith(6, undefined);
+    expect(listener).toBeCalledWith(8, undefined);
+    expect(listener).toBeCalledTimes(2);
+  });
+
+  it("filter should filter values", () => {
+    const { filter, emit } = createSimpleEvent<number>();
+    const listener = vi.fn();
+    const filtered = filter((value) => value === 4);
+    filtered.addListener(listener);
+    emit(3);
+    emit(4);
+    emit(5);
+    expect(listener).toBeCalledWith(4, undefined);
+    expect(listener).toBeCalledTimes(1);
   });
 
   describe("useSimpleEventSubscription", () => {

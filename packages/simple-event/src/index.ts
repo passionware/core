@@ -19,7 +19,17 @@ export type SimpleEventEmitter<E, Metadata> = [Metadata] extends [undefined]
 export interface SimpleEvent<E = void, Metadata = undefined> {
   addListener: SimpleEventSubscribe<E, Metadata>;
   emit: SimpleEventEmitter<E, Metadata>;
+  waitFor(predicate: (e: E) => boolean): Promise<E>;
+  waitFor<T extends E>(predicate: (e: E) => e is T): Promise<T>;
+  map<T>(mapper: (e: E) => T): SimpleEvent<T, Metadata>;
+  filter(predicate: (e: E) => boolean): SimpleEvent<E, Metadata>;
+  filter<T extends E>(predicate: (e: E) => e is T): SimpleEvent<T, Metadata>;
 }
+
+export type SimpleReadOnlyEvent<E = void, Metadata = undefined> = Omit<
+  SimpleEvent<E, Metadata>,
+  "emit"
+>;
 
 export type InspectableEvent<E = void, Metadata = undefined> = SimpleEvent<
   E,
@@ -32,11 +42,11 @@ export const createSimpleEvent = <
   E = void,
   Metadata = undefined,
 >(): SimpleEvent<E, Metadata> => {
-  const inspecableEvent = createInspectableEvent<E, Metadata>();
-  return {
-    addListener: inspecableEvent.addListener,
-    emit: inspecableEvent.emit,
-  };
+  const { getListeners, ...inspectableEvent } = createInspectableEvent<
+    E,
+    Metadata
+  >();
+  return inspectableEvent;
 };
 
 export const createInspectableEvent = <
@@ -63,6 +73,32 @@ export const createInspectableEvent = <
     addListener,
     emit: emit as SimpleEventEmitter<E, Metadata>, // casting since we can't check Metadata being undefined in runtime outside emit call
     getListeners: () => listeners,
+    waitFor(predicate: { (e: E): boolean }): Promise<E> {
+      return new Promise((resolve) => {
+        const listener = (e: E) => {
+          if (predicate(e)) {
+            resolve(e);
+          }
+        };
+        addListener(listener);
+      });
+    },
+    map: <T>(mapper: (e: E) => T) => {
+      const newEvent = createSimpleEvent<T, Metadata>();
+      addListener((...args: any[]) => {
+        newEvent.emit(mapper(args[0]), args[1]);
+      });
+      return newEvent;
+    },
+    filter: <T extends E>(predicate: (e: E) => e is T) => {
+      const newEvent = createSimpleEvent<T, Metadata>();
+      addListener((...args: any[]) => {
+        if (predicate(args[0])) {
+          newEvent.emit(args[0], args[1]);
+        }
+      });
+      return newEvent;
+    },
   };
 };
 

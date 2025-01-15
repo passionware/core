@@ -1,14 +1,16 @@
-import { SetStateAction } from "react";
 import {
+  createSimpleEvent,
   SimpleEventEmitter,
   SimpleEventSubscribe,
-  createSimpleEvent,
+  SimpleReadOnlyEvent,
 } from "@passionware/simple-event";
+import { SetStateAction } from "react";
 
 export interface SimpleStore<Data, ChangeMeta = undefined> {
   addUpdateListener: SimpleEventSubscribe<Data, ChangeMeta>;
   setNewValue: SimpleEventEmitter<SetStateAction<Data>, ChangeMeta>;
   getCurrentValue: () => Data;
+  toReadOnlyEvent: () => SimpleReadOnlyEvent<Data, ChangeMeta>;
 }
 
 export type SimpleStoreReadOnly<Data, ChangeMeta = undefined> = Omit<
@@ -35,5 +37,9 @@ export const createSimpleStore = <T, ChangeMeta = undefined>(
     setNewValue: emit as SimpleEventEmitter<SetStateAction<T>, ChangeMeta>,
     getCurrentValue: () => lastValue,
     addUpdateListener: simpleEvent.addListener,
+    toReadOnlyEvent: () => {
+      const { emit, ...readOnlyEvent } = simpleEvent;
+      return readOnlyEvent;
+    },
   };
 };
