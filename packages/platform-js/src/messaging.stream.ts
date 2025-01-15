@@ -9,8 +9,7 @@ export type MessageEventStreamPayload<
   Request,
   Response extends { partial: unknown; final: unknown },
 > = {
-  /** Metadata for the request (e.g., parameters). */
-  metadata: Request;
+  request: Request;
   /**
    * Emit a partial piece of data to the caller.
    * This must match Response["partial"].
@@ -116,7 +115,7 @@ export function createRequestStreamMessaging<
         for (const listener of listeners) {
           // Invoke the listener
           const cleanup = listener({
-            metadata: request,
+            request: request,
 
             pushResponse: (partialData) => {
               onData?.(partialData);

@@ -28,8 +28,8 @@ describe("Messaging Systems", () => {
 
     it("should resolve with the correct response if a single listener is present", async () => {
       const messaging = createRequestResponseMessaging<number, string>();
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`Response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Response for ${request}`);
       });
 
       const result = await messaging.sendRequest(42);
@@ -40,8 +40,8 @@ describe("Messaging Systems", () => {
       const messaging = createRequestResponseMessaging<number, string>();
 
       const cleanup = vi.fn();
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`Response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Response for ${request}`);
         return cleanup;
       });
 
@@ -63,11 +63,11 @@ describe("Messaging Systems", () => {
     it("should collect responses from multiple listeners", async () => {
       const messaging = createRequestCollectMessaging<number, string>();
 
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`First response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`First response for ${request}`);
       });
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`Second response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Second response for ${request}`);
       });
 
       const result = await messaging.sendRequest(42);
@@ -80,14 +80,14 @@ describe("Messaging Systems", () => {
     it("should resolve with responses in order received", async () => {
       const messaging = createRequestCollectMessaging<number, string>();
 
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
         setTimeout(
-          () => resolveCallback(`Delayed response for ${metadata}`),
+          () => sendResponse(`Delayed response for ${request}`),
           10,
         );
       });
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`Immediate response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Immediate response for ${request}`);
       });
 
       const result = await messaging.sendRequest(42);
@@ -103,12 +103,12 @@ describe("Messaging Systems", () => {
       const cleanup1 = vi.fn();
       const cleanup2 = vi.fn();
 
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`First response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`First response for ${request}`);
         return cleanup1;
       });
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`Second response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Second response for ${request}`);
         return cleanup2;
       });
 
@@ -134,11 +134,11 @@ describe("Messaging Systems", () => {
     it("should resolve with the first response from multiple listeners", async () => {
       const messaging = createRequestFirstResponseMessaging<number, string>();
 
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        setTimeout(() => resolveCallback(`First response for ${metadata}`), 10);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        setTimeout(() => sendResponse(`First response for ${request}`), 10);
       });
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        resolveCallback(`Immediate response for ${metadata}`);
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Immediate response for ${request}`);
       });
 
       const result = await messaging.sendRequest(42);
@@ -148,11 +148,11 @@ describe("Messaging Systems", () => {
     it("should ignore other responses after the first one", async () => {
       const messaging = createRequestFirstResponseMessaging<number, string>();
 
-      const listener1 = vi.fn(({ metadata, resolveCallback }) => {
-        setTimeout(() => resolveCallback(`First response for ${metadata}`), 10);
+      const listener1 = vi.fn(({ request, sendResponse }) => {
+        setTimeout(() => sendResponse(`First response for ${request}`), 10);
       });
-      const listener2 = vi.fn(({ metadata, resolveCallback }) => {
-        resolveCallback(`Immediate response for ${metadata}`);
+      const listener2 = vi.fn(({ request, sendResponse }) => {
+        sendResponse(`Immediate response for ${request}`);
       });
 
       messaging.subscribeToRequest(listener1);
@@ -171,12 +171,12 @@ describe("Messaging Systems", () => {
       const cleanup1 = vi.fn();
       const cleanup2 = vi.fn();
 
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        delay(10).then(() => resolveCallback(`Response for ${metadata}`));
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        delay(10).then(() => sendResponse(`Response for ${request}`));
         return cleanup1;
       });
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        delay(5).then(() => resolveCallback(`Response for ${metadata}`));
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        delay(5).then(() => sendResponse(`Response for ${request}`));
         return cleanup2;
       });
 
@@ -194,12 +194,12 @@ describe("Messaging Systems", () => {
       const cleanup1 = vi.fn();
       const cleanup2 = vi.fn();
 
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        delay(10).then(() => resolveCallback(`Response for ${metadata}`));
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        delay(10).then(() => sendResponse(`Response for ${request}`));
         return cleanup1;
       });
-      messaging.subscribeToRequest(({ metadata, resolveCallback }) => {
-        delay(10).then(() => resolveCallback(`Response for ${metadata}`));
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        delay(10).then(() => sendResponse(`Response for ${request}`));
         return cleanup2;
       });
 

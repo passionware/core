@@ -52,10 +52,10 @@ describe("createRequestStreamMessaging (partial=string, final=void)", () => {
     // Subscribe exactly one listener that pushes partial data 3 times
     // and then calls endStream() with no final argument (since final=void).
     const unsubscribe = messaging.subscribeToRequest(
-      ({ metadata, pushResponse, endStream }) => {
+      ({ request, pushResponse, endStream }) => {
         const interval = setInterval(() => {
           pushCounter++;
-          pushResponse(`Partial #${pushCounter} for ${metadata}`);
+          pushResponse(`Partial #${pushCounter} for ${request}`);
           if (pushCounter === 3) {
             clearInterval(interval);
             endStream(); // <--- final=void

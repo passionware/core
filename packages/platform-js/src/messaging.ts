@@ -1,6 +1,6 @@
 export type MessageEventPayload<Request, Response> = {
-  metadata: Request;
-  resolveCallback: (response: Response) => void;
+  request: Request;
+  sendResponse: (response: Response) => void;
 };
 type MaybeCleanupFnWithSource = void | ((source: "self" | "other") => void);
 type MaybeCleanupFn = void | (() => void);
@@ -41,8 +41,8 @@ export function createRequestResponseMessaging<Request, Response>() {
           >();
           listeners.forEach((listener) => {
             const cleanup = listener({
-              metadata: request,
-              resolveCallback: async (response) => {
+              request: request,
+              sendResponse: async (response) => {
                 // edge case - someone in the listener synchronously calls the cleanup function so cleanup is not set yet
                 await Promise.resolve();
                 resolve(response);
@@ -99,8 +99,8 @@ export function createRequestCollectMessaging<Request, Response>() {
 
           listeners.forEach((listener) => {
             const cleanup = listener({
-              metadata: request,
-              resolveCallback: async (response) => {
+              request: request,
+              sendResponse: async (response) => {
                 // edge case - someone in the listener synchronously calls the cleanup function so cleanup is not set yet
                 await Promise.resolve();
                 collectedResponses.push(response);
@@ -127,8 +127,8 @@ export function createRequestCollectMessaging<Request, Response>() {
 
 export function createRequestFirstResponseMessaging<Request, Response>() {
   type MessageEventPayload = {
-    metadata: Request;
-    resolveCallback: (response: Response) => Promise<void>;
+    request: Request;
+    sendResponse: (response: Response) => Promise<void>;
   };
 
   const listeners: Set<
@@ -162,8 +162,8 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
 
           listeners.forEach((listener) => {
             const cleanup = listener({
-              metadata: request,
-              resolveCallback: async (response) => {
+              request: request,
+              sendResponse: async (response) => {
                 // edge case - someone in the listener synchronously calls the cleanup function so cleanup is not set yet
                 await Promise.resolve();
                 if (!isResolved) {
@@ -184,14 +184,14 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
                     `Multiple responses received in request-first-response mode, expected at most one.
                     You code should prevent this from happening by properly utilizing cleanup functions.
                     example:
-                    let savedResolveCallback;
-                    subscribeToRequest(({ metadata, resolveCallback }) => {
-                      savedResolvedCallback=resolveCallback("response");
-                      return () => { savedResolveCallback = undefined; };
+                    let savedsendResponse;
+                    subscribeToRequest(({ request, sendResponse }) => {
+                      savedResolvedCallback=sendResponse("response");
+                      return () => { savedsendResponse = undefined; };
                     });
                     
                     // later in the code
-                    savedResolveCallback?.("response"); // this will be called only if the cleanup function was not called before
+                    savedsendResponse?.("response"); // this will be called only if the cleanup function was not called before
                     `,
                   );
                 }
