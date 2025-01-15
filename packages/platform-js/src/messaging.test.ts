@@ -6,10 +6,16 @@ import {
   createRequestResponseMessaging,
 } from "./messaging";
 
+// we sometimes use this in the test to ensure that function overloading also works
+type TestMessage = {
+  request: number;
+  response: string;
+};
+
 describe("Messaging Systems", () => {
   describe("createRequestResponseMessaging", () => {
     it("should reject if there are no listeners", async () => {
-      const messaging = createRequestResponseMessaging<number, string>();
+      const messaging = createRequestResponseMessaging<TestMessage>();
 
       await expect(messaging.sendRequest(42)).rejects.toThrow(
         "No listener found for the request in request-response mode",
@@ -53,7 +59,7 @@ describe("Messaging Systems", () => {
 
   describe("createRequestCollectMessaging", () => {
     it("should reject if there are no listeners", async () => {
-      const messaging = createRequestCollectMessaging<number, string>();
+      const messaging = createRequestCollectMessaging<TestMessage>();
 
       await expect(messaging.sendRequest(42)).rejects.toThrow(
         "No listener found for the request in request-collect mode, expected at least one",
@@ -81,10 +87,7 @@ describe("Messaging Systems", () => {
       const messaging = createRequestCollectMessaging<number, string>();
 
       messaging.subscribeToRequest(({ request, sendResponse }) => {
-        setTimeout(
-          () => sendResponse(`Delayed response for ${request}`),
-          10,
-        );
+        setTimeout(() => sendResponse(`Delayed response for ${request}`), 10);
       });
       messaging.subscribeToRequest(({ request, sendResponse }) => {
         sendResponse(`Immediate response for ${request}`);
@@ -124,7 +127,7 @@ describe("Messaging Systems", () => {
 
   describe("createRequestFirstResponseMessaging", () => {
     it("should reject if there are no listeners", async () => {
-      const messaging = createRequestFirstResponseMessaging<number, string>();
+      const messaging = createRequestFirstResponseMessaging<TestMessage>();
 
       await expect(messaging.sendRequest(42)).rejects.toThrow(
         "No listener found for the request in request-first-response mode, expected at least one",

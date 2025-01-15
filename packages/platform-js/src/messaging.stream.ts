@@ -54,6 +54,14 @@ export type RequestStreamOptions<
  * and gets a Promise<Response["final"]> that resolves on endStream(...)
  * or rejects on failStream(...).
  */
+
+export function createRequestStreamMessaging<
+  Message extends MessageSpec<unknown, { partial: unknown; final: unknown }>,
+>(): StreamResponseMessaging<Message>;
+export function createRequestStreamMessaging<
+  Request,
+  Response extends { partial: unknown; final: unknown },
+>(): StreamResponseMessaging<MessageSpec<Request, Response>>;
 export function createRequestStreamMessaging<
   Request,
   Response extends { partial: unknown; final: unknown },
@@ -164,7 +172,17 @@ export type StreamResponseMessaging<Message> =
   // We now expect MessageSpec<Req, { partial: X; final: Y }>
   Message extends MessageSpec<infer Req, infer Resp>
     ? Resp extends { partial: unknown; final: unknown }
-      ? ReturnType<typeof createRequestStreamMessaging<Req, Resp>>
+      ? {
+          subscribeToRequest: (
+            listener: (
+              payload: MessageEventStreamPayload<Req, Resp>,
+            ) => MaybeCleanupFn,
+          ) => () => void;
+          sendRequest: (
+            request: Req,
+            options?: RequestStreamOptions<Resp>,
+          ) => Promise<Resp["final"]>;
+        }
       : never
     : never;
 

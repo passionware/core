@@ -1,12 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRequestStreamMessaging } from "./messaging.stream";
 
+// we sometimes use this in the test to ensure that function overloading also works
+
+type TestMessage = {
+  request: number;
+  response: { partial: string; final: void };
+};
+
 describe("createRequestStreamMessaging (partial=string, final=void)", () => {
   it("should reject if there are no listeners", async () => {
-    const messaging = createRequestStreamMessaging<
-      number,
-      { partial: string; final: void }
-    >();
+    const messaging = createRequestStreamMessaging<TestMessage>();
 
     await expect(
       messaging.sendRequest(42, {
