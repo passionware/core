@@ -16,6 +16,7 @@
 "@passionware/typescript-config": patch
 "@passionware/ui": patch
 "@passionware/entities": patch
+"@passionware/messaging-react": patch
 ---
 
 initial releasse

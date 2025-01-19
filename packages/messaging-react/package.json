@@ -1,0 +1,17 @@
+{
+  "name": "@passionware/messaging-react",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "scripts": {
+    "lint": "echo 'Add lint script here'",
+    "test": "vitest run",
+    "ts": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@passionware/platform-js": "*",
+    "@passionware/monads": "*"
+  },
+  "peerDependencies": {
+    "react": ">18.0.0"
+  }
+}
