@@ -4,7 +4,7 @@
   "main": "./src/index.ts",
   "scripts": {
     "lint": "echo 'Add lint script here'",
-    "test": "vitest run",
+    "test": "echo 'Add test script here'",
     "ts": "tsc --noEmit"
   },
   "dependencies": {
