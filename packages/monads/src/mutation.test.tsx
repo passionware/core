@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { mt, MutationData } from "./mutation";
+import { mt } from "./mutation";
+import { MutationData } from "./mutation.types";
+import { rd } from "./remoteData";
 
 describe("Mutation Utilities", () => {
   describe("Mutation Constructors", () => {
@@ -90,10 +92,7 @@ describe("Mutation Utilities", () => {
   it("mapError returns a new error mutation with the mapped error", () => {
     const request = { user: "admin" };
     const errorMutation = mt.ofError(request, new Error("error"));
-    const result = mt.mapError(
-      errorMutation,
-      () => new Error("mapped error"),
-    );
+    const result = mt.mapError(errorMutation, () => new Error("mapped error"));
     expect(result).toEqual({
       status: "error",
       request,
@@ -149,6 +148,19 @@ describe("Mutation Utilities", () => {
       expect(jo(mt.ofPending(req))).toEqual("Pending req");
       expect(jo(mt.ofError(req, new Error("err")))).toEqual("Error/err/req");
       expect(jo(mt.ofSuccess(req, res))).toEqual("Success/123");
+    });
+  });
+
+  describe("convert", () => {
+    it("fromRemoteData", () => {
+      const remoteData = rd.of(2);
+      const result = mt.fromRemoteData(remoteData);
+      expect(result).toEqual(mt.ofSuccess(void 0, 2));
+    });
+    it("toRemoteData", () => {
+      const mutation = mt.ofSuccess("whatever", 2);
+      const result = mt.toRemoteData(mutation);
+      expect(result).toEqual(rd.of(2));
     });
   });
 });
