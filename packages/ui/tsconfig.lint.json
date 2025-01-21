@@ -1,7 +1,8 @@
 {
   "extends": "@passionware/typescript-config/react-library.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "src"
   },
   "include": ["src", "turbo"],
   "exclude": ["node_modules", "dist"]

@@ -1,18 +1,32 @@
 {
   "name": "@passionware/messaging-react",
   "version": "0.0.0",
-  "main": "./src/index.ts",
+  "module": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "echo 'Add lint script here'",
     "test": "echo 'Add test script here'",
     "ts": "tsc --noEmit",
-    "butild": "tsc --build"
+    "build": "tsc --build"
   },
   "dependencies": {
     "@passionware/platform-js": "*",
     "@passionware/monads": "*"
   },
+  "devDependencies": {
+    "@passionware/typescript-config": "*"
+  },
   "peerDependencies": {
     "react": ">18.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   }
 }
