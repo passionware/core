@@ -5,6 +5,10 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "moduleResolution": "Bundler",
-    "module": "ESNext"
+    "module": "ESNext",
+    "rootDir": "src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   }
 }

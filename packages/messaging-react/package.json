@@ -5,7 +5,8 @@
   "scripts": {
     "lint": "echo 'Add lint script here'",
     "test": "echo 'Add test script here'",
-    "ts": "tsc --noEmit"
+    "ts": "tsc --noEmit",
+    "butild": "tsc --build"
   },
   "dependencies": {
     "@passionware/platform-js": "*",
