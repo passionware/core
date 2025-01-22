@@ -48,7 +48,7 @@ type MappedFields<Args, Mapping extends Mapper<Args>> = {
 export function createArgsAccessor<Args, Mapping extends Mapper<Args>>(
   argsDecorator: ArgsDecorator<Args>,
   mapping?: Mapping,
-) {
+): ArgsAccessor<MappedFields<Args, Mapping>> {
   // Get the latest mapped args based on mapping
   const getLatestArgs = (): MappedFields<Args, Mapping> => {
     const latestArgs = argsDecorator.getLatestArgs();
@@ -91,14 +91,10 @@ export function createArgsAccessor<Args, Mapping extends Mapper<Args>>(
   return {
     getLatestArgs,
     useArgs,
-    createUseArgs:
-      <T extends keyof MappedFields<Args, Mapping>>(key: T) =>
-      () =>
-        useArgs()[key],
-    createGetArgs:
-      <T extends keyof MappedFields<Args, Mapping>>(key: T) =>
-      () =>
-        getLatestArgs()[key],
+    forArg: (key) => ({
+      use: () => useArgs()[key],
+      get: () => getLatestArgs()[key],
+    }),
   };
 }
 
