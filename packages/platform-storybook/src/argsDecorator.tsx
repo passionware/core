@@ -105,7 +105,10 @@ export function createArgsAccessor<Args, Mapping extends Mapper<Args>>(
 export type ArgsAccessor<Args> = {
   getLatestArgs: () => Args;
   useArgs: () => Args;
-  forArg<T extends keyof Args>(
-    key: T,
-  ): { use: () => Args[T]; get: () => Args[T] };
+  forArg<T extends keyof Args>(key: T): ArgsScopedAccessor<Args[T]>;
+};
+
+export type ArgsScopedAccessor<T> = {
+  use: () => T;
+  get: () => T;
 };
