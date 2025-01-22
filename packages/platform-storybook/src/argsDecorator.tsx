@@ -91,10 +91,20 @@ export function createArgsAccessor<Args, Mapping extends Mapper<Args>>(
   return {
     getLatestArgs,
     useArgs,
+    createUseArgs:
+      <T extends keyof MappedFields<Args, Mapping>>(key: T) =>
+      () =>
+        useArgs()[key],
+    createGetArgs:
+      <T extends keyof MappedFields<Args, Mapping>>(key: T) =>
+      () =>
+        getLatestArgs()[key],
   };
 }
 
 export type ArgsAccessor<Args> = {
   getLatestArgs: () => Args;
   useArgs: () => Args;
+  createUseArgs: <T extends keyof Args>(key: T) => () => Args[T];
+  createGetArgs: <T extends keyof Args>(key: T) => () => Args[T];
 };

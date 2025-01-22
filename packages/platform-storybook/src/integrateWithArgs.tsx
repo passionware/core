@@ -12,6 +12,7 @@ type ComponentSpec<T> =
  * This function is used to integrate a component with args via context.
  * @param factory A function that takes a `useArgs` function and returns a component.
  * This is primarily used with component factories
+ * @deprecated use args decorator instead
  * @param getInitialSharedState A function that takes the args and returns the initial shared state
  */
 export function integrateWithArgs<Props, OuterProps = {}, State = undefined>(
