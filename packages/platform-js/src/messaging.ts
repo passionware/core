@@ -96,7 +96,7 @@ export function createRequestCollectMessaging<Request, Response>() {
       listeners.add(listener);
       return () => void listeners.delete(listener);
     },
-    sendRequest(request: Request) {
+    sendRequest(request: Request, warningTimeout?: number) {
       return new Promise<Response[]>((resolve, reject) => {
         const numListeners = listeners.size;
 
@@ -116,6 +116,22 @@ export function createRequestCollectMessaging<Request, Response>() {
             MaybeCleanupFnWithSource
           >();
 
+          const timeoutId = warningTimeout
+            ? setTimeout(() => {
+                if (collectedResponses.length < numListeners) {
+                  console.warn(
+                    "[request-collect messaging]: No response received within 10 seconds for the request",
+                    "expected responses from",
+                    numListeners,
+                    "listeners, but received only",
+                    collectedResponses.length,
+                    ".",
+                    "Please make sure that all listeners are sending a response",
+                  );
+                }
+              }, warningTimeout)
+            : undefined;
+
           listeners.forEach((listener) => {
             const cleanup = listener({
               request: request,
@@ -124,6 +140,7 @@ export function createRequestCollectMessaging<Request, Response>() {
                 await Promise.resolve();
                 collectedResponses.push(response);
                 if (collectedResponses.length === numListeners) {
+                  clearTimeout(timeoutId);
                   resolve(collectedResponses);
                   for (const [listenerOfCleanup, cleanup] of cleanups) {
                     // void functions can return anything, ie promises, so we need to ignore the return value in this case
