@@ -271,7 +271,10 @@ export type CollectResponseMessaging<
       payload: MessageEventPayload<Message["request"], Message["response"]>,
     ) => void,
   ) => () => void;
-  sendRequest: (request: Message["request"]) => Promise<Message["response"][]>;
+  sendRequest: (
+    request: Message["request"],
+    warningTimeout?: number,
+  ) => Promise<Message["response"][]>;
 };
 
 export type FirstResponseMessaging<
