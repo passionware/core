@@ -120,8 +120,8 @@ export function createRequestCollectMessaging<Request, Response>() {
             ? setTimeout(() => {
                 if (collectedResponses.length < numListeners) {
                   console.warn(
-                    "[request-collect messaging]: No response received within 10 seconds for the request",
-                    "expected responses from",
+                    "[request-collect messaging]: No response received within 10 seconds for the request.",
+                    "Expected responses from",
                     numListeners,
                     "listeners, but received only",
                     collectedResponses.length,
