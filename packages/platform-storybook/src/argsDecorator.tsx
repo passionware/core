@@ -1,10 +1,15 @@
 import { maybe, Maybe } from "@passionware/monads";
 import { Decorator } from "@storybook/react";
-import { createContext, PropsWithChildren, useContext } from "react";
+import { createContext, PropsWithChildren, ReactNode, useContext } from "react";
 
 export function createArgsDecorator<Props>() {
   const argsContext = createContext<Maybe<Props>>(maybe.ofAbsent());
   let latestArgs: Maybe<Props> = maybe.ofAbsent();
+  let useArgs = () =>
+    maybe.getOrThrow(
+      useContext(argsContext),
+      "useArgs must be used inside a story",
+    );
   return {
     argsDecorator: ((Story, ctx) => {
       latestArgs = ctx.args as Props;
@@ -16,11 +21,10 @@ export function createArgsDecorator<Props>() {
     }) satisfies Decorator,
     getLatestArgs: () =>
       maybe.getOrThrow(latestArgs, "getLatestArgs must be used inside a story"),
-    useArgs: () =>
-      maybe.getOrThrow(
-        useContext(argsContext),
-        "useArgs must be used inside a story",
-      ),
+    useArgs,
+    Renderer: (props: { children: (args: Props) => ReactNode }) => {
+      return props.children(useArgs());
+    },
     OverrideArgs: ({
       children,
       ...args
