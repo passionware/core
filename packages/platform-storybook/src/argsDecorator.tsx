@@ -108,3 +108,15 @@ export type ArgsScopedAccessor<T> = {
   use: () => T;
   get: () => T;
 };
+
+/**
+ * Create a static scoped accessor that always returns the same value.
+ * Useful as a fallback logic for when the accessor is not provided.
+ * @param value
+ */
+export function createStaticScopedAccessor<T>(value: T): ArgsScopedAccessor<T> {
+  return {
+    use: () => value,
+    get: () => value,
+  };
+}
