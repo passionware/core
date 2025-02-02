@@ -59,7 +59,6 @@ interface MenuButtonPropsInternal {
   disabled?: boolean;
   colorVariant?: "primary" | "danger" | "warning" | "success" | "secondary";
   descriptionSlot?: React.ReactNode;
-  dupa: string;
 }
 
 export type MenuButtonProps = ComponentProps<typeof MenuButton>;
@@ -122,6 +121,7 @@ export const MenuButton = cf.button<MenuButtonPropsInternal>(
         </>
       );
     },
+    // @ts-expect-error data attributes no longer supported out of the box
     "data-color-variant": (p) => p.colorVariant,
   },
   ["leftSlot", "rightSlot", "colorVariant", "descriptionSlot"],
