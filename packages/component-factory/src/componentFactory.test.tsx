@@ -126,6 +126,7 @@ describe("cf", () => {
         {
           className: ({ variant }) => `test-class-${variant}`,
           children: "Test Content",
+          title: "Test Title",
         },
         ["variant"],
       ); // 'passedProp' is not in the excluded list
@@ -140,6 +141,9 @@ describe("cf", () => {
       expect(
         divElement.attributes.getNamedItem("variant")?.value,
       ).toBeUndefined();
+
+      expect(divElement.classList.contains("test-class-solid")).toBe(true);
+      expect(divElement.title).toBe("Test Title");
     });
   });
 });

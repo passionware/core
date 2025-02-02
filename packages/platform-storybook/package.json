@@ -18,7 +18,8 @@
     "@passionware/simple-event": "*"
   },
   "devDependencies": {
-    "@passionware/typescript-config": "*"
+    "@passionware/typescript-config": "*",
+    "@storybook/react": "^8.5.3"
   },
   "peerDependencies": {
     "react": ">18.0.0"

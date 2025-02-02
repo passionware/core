@@ -1,30 +1,14 @@
-import {
-  ComponentProps,
-  ComponentType,
-  DOMFactory,
-  ReactHTML,
-  Ref,
-  createElement,
-  forwardRef,
-} from "react";
-import mergeProps from "merge-props";
 import { MakeOptional } from "@passionware/platform-ts";
+import mergeProps from "merge-props";
+import {
+  ComponentPropsWithRef,
+  ComponentType,
+  createElement,
+  JSX,
+} from "react";
 
-type NativeTag = keyof ReactHTML;
-type SupportedTag = NativeTag | ComponentType<any>;
-
-type GetHTMLElement<T extends NativeTag> =
-  ReactHTML[T] extends DOMFactory<any, infer E> ? E : never;
-
-type PropsOf<T extends SupportedTag> = T extends NativeTag
-  ? ReactHTML[T] extends DOMFactory<infer P, any>
-    ? P
-    : never
-  : ComponentProps<T>;
-
-type DataProps = {
-  [key: `data-${string}`]: string;
-};
+type NativeTag = keyof JSX.IntrinsicElements;
+type SupportedElementSpec = NativeTag | ComponentType<any>;
 
 type IfNotFunction<MaybeFunction, ElseType> = MaybeFunction extends (
   ...args: any[]
@@ -47,14 +31,16 @@ type ResolutionSpec<
 > = Partial<ResolvableProps<PropsIn, PropsOut>>;
 
 export function cfe<
-  TElement extends SupportedTag,
+  TElement extends SupportedElementSpec,
   TProps extends object,
-  TSpec extends ResolutionSpec<PropsOf<TElement> & TProps, PropsOf<TElement>>,
+  TSpec extends ResolutionSpec<
+    ComponentPropsWithRef<TElement> & TProps,
+    ComponentPropsWithRef<TElement>
+  >,
 >(elementType: TElement, propsSpec: TSpec, excludeProps?: (keyof TProps)[]) {
-  return forwardRef<
-    TElement,
-    MakeOptional<PropsOf<TElement> & TProps, keyof TSpec>
-  >(function ComponentFactory(props, ref) {
+  return function ComponentFactory(
+    props: MakeOptional<ComponentPropsWithRef<TElement> & TProps, keyof TSpec>,
+  ) {
     const resolvedProps = Object.keys(propsSpec).reduce(
       (acc, key) => {
         const propValue = propsSpec[key as keyof typeof propsSpec];
@@ -62,82 +48,51 @@ export function cfe<
           typeof propValue === "function" ? propValue(props) : propValue;
 
         if (typeof propValue === "function") {
-          // If the prop is resolved using a callback function, use the resolved value
-          // and mark the prop to be excluded from the original props
           acc.resolved[key as keyof typeof acc.resolved] = resolvedValue;
           acc.excludeFromProps[key as keyof typeof acc.excludeFromProps] = true;
         } else {
-          // If the prop is not a function, include it in the resolved props without exclusion
           acc.resolved[key as keyof typeof acc.resolved] = resolvedValue;
         }
 
         return acc;
       },
       {
-        resolved: {} as PropsOf<TElement> & TProps,
+        resolved: {} as ComponentPropsWithRef<TElement> & TProps,
         excludeFromProps: {} as { [key: string]: boolean },
       },
     );
 
-    // Exclude props that were resolved using callback functions
     const finalProps = Object.keys(props).reduce(
       (acc, key) => {
         if (
           !resolvedProps.excludeFromProps[key] &&
           (!excludeProps || !excludeProps.includes(key as keyof TProps))
         ) {
-          // @ts-expect-error todo finish TS upgrade
-          acc[key] = props[key];
+          acc[key as keyof typeof acc] = props[key as keyof typeof props];
         }
         return acc;
       },
-      {} as PropsOf<TElement> & TProps,
+      {} as ComponentPropsWithRef<TElement> & TProps,
     );
 
-    // Merge the resolved props with the remaining original props and the ref
-    const mergedProps = mergeProps(resolvedProps.resolved, finalProps, {
-      ref,
-    });
+    const mergedProps = mergeProps(resolvedProps.resolved, finalProps);
 
     return createElement(elementType, mergedProps);
-  });
+  };
 }
 
 type BoundFactory<TElement extends NativeTag> = <TProps extends object>(
   propsSpec: ResolvableProps<
-    TProps & PropsOf<TElement> & DataProps,
-    PropsOf<TElement> & DataProps
+    TProps & ComponentPropsWithRef<TElement>,
+    ComponentPropsWithRef<TElement>
   >,
   excludeProps?: (keyof TProps)[],
-) => ComponentType<
-  TProps &
-    PropsOf<TElement> &
-    DataProps & { ref?: Ref<GetHTMLElement<TElement>> }
->;
+) => ComponentType<TProps & ComponentPropsWithRef<TElement>>;
 
 type BoundFactories = {
   [K in NativeTag]: BoundFactory<K>;
 };
 
-/**
- * // Usage examples
- * const Example1 = cf.div({
- *   className: 'foo',
- *   children: 'bar'
- * });
- *
- * const Example2 = cf.div<{ customProp: string }>({
- *   className: 'foo',
- *   children: 'bar',
- *   onClick: ({ customProp }) => console.log(customProp) // Change 'dupa' to 'customProp' or another prop name
- * });
- *
- * const Example3 = cfe<'button', { customProp: string }>('button', {
- *   className: 'foo',
- *   children: 'bar',
- *   type: ({ customProp }) => console.log(customProp) // Change 'dupa' to 'customProp' or another prop name
- * });
- */
 export const cf = new Proxy({} as BoundFactories, {
   get: (_, elementType: any) => (propsSpec: any, excludedProps: any) =>
     cfe(elementType, propsSpec, excludedProps),

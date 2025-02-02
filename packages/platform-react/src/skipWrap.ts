@@ -4,6 +4,8 @@ import { cloneElement, ReactElement, ReactNode } from "react";
 const wrapNode = Symbol("wrapNode" + "");
 
 /**
+ * @deprecated - we are happy with regular layout composition so far, and we can always accept props like headerSlotClassName if really needed.
+ * Or we can use <Slot> in layouts and require to pass elements always...
  * Creates an element that will indicate that the default layout wapper should be skipped.
  * @example
  * <SomeSkippableLayout title="DefaultTitle"/>
@@ -103,14 +105,14 @@ export function wrap(
         children: spec.node,
       };
       if (spec.className) {
-        wrapperProps.className = classNames(
-          wrapper.props.className,
+        (wrapperProps as any).className = classNames(
+          (wrapper.props as any).className,
           spec.className,
         );
       }
       if (spec.skipPadding !== true && options.paddingClass) {
-        wrapperProps.className = classNames(
-          wrapperProps.className,
+        (wrapperProps as any).className = classNames(
+          (wrapperProps as any).className,
           options.paddingClass,
         );
       }
@@ -124,10 +126,13 @@ export function wrap(
     return node;
   }
   if (options.paddingClass) {
-    return cloneElement(wrapper, {
+    return cloneElement(wrapper as any, {
       children: node,
-      className: classNames(wrapper.props.className, options.paddingClass),
+      className: classNames(
+        (wrapper.props as any).className,
+        options.paddingClass,
+      ),
     });
   }
-  return cloneElement(wrapper, { children: node });
+  return cloneElement(wrapper, { children: node } as any);
 }
