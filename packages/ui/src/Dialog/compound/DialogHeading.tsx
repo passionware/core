@@ -1,5 +1,4 @@
-import { useId } from "@floating-ui/react";
-import { forwardRef, HTMLProps, useLayoutEffect } from "react";
+import { forwardRef, HTMLProps, useId, useLayoutEffect } from "react";
 import { useDialogContext } from "./DialogContext";
 
 export const DialogHeading = forwardRef<

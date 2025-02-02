@@ -1,6 +1,11 @@
-import { ReactElement, cloneElement, forwardRef, useLayoutEffect } from 'react';
-import { useId } from '@floating-ui/react';
-import { useDialogContext } from './DialogContext';
+import {
+  ReactElement,
+  cloneElement,
+  forwardRef,
+  useLayoutEffect,
+  useId,
+} from "react";
+import { useDialogContext } from "./DialogContext";
 
 export const DialogDescription = forwardRef<
   HTMLParagraphElement,
@@ -16,5 +21,5 @@ export const DialogDescription = forwardRef<
     return () => setDescriptionId(undefined);
   }, [id, setDescriptionId]);
 
-  return cloneElement(children, { id, ref });
+  return cloneElement(children as any, { id, ref });
 });

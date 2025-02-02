@@ -59,6 +59,7 @@ interface MenuButtonPropsInternal {
   disabled?: boolean;
   colorVariant?: "primary" | "danger" | "warning" | "success" | "secondary";
   descriptionSlot?: React.ReactNode;
+  dupa: string;
 }
 
 export type MenuButtonProps = ComponentProps<typeof MenuButton>;

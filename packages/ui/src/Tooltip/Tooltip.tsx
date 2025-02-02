@@ -88,7 +88,7 @@ export function Tooltip({
       })}
       {!isDisabled && transitionStyles.isMounted && (
         <FloatingPortal>
-          {cloneElement(popoverSlot, {
+          {cloneElement(popoverSlot as any, {
             ref: floating.refs.setFloating,
             style: { ...floating.floatingStyles, ...transitionStyles.styles },
           })}

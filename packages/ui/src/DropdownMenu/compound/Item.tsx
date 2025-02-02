@@ -1,9 +1,10 @@
-import { useId, useListItem } from "@floating-ui/react";
+import { useListItem } from "@floating-ui/react";
 import {
   cloneElement,
   ReactElement,
   Ref,
   useEffect,
+  useId,
   useLayoutEffect,
 } from "react";
 import { useDropdownMenuInternalContext } from "../DropdownMenu.context";
