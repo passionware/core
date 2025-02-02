@@ -11,6 +11,6 @@
     "ts": "tsc --noEmit"
   },
   "dependencies": {
-    "use-last": "^1.1.1"
+    "use-last": "^1.2.0"
   }
 }
