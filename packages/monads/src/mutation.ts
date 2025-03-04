@@ -1,6 +1,7 @@
 // We no longer use v4 single mutation, in v5 we separate mutation state and page actions
 
 import { mutationDataToRemoteData, remoteDataToMutationData } from "./convert";
+import { Maybe } from "./maybe";
 import {
   ErrorMutationData,
   MutationData,
@@ -28,6 +29,12 @@ export const mt = {
       status: "pending",
       request,
     }) satisfies MutationData<Request, unknown>,
+  getRequest: <Request, Response>(
+    mutation: MutationData<Request, Response>,
+  ): Maybe<Request> => (mt.isStarted(mutation) ? mutation.request : null),
+  getResponse: <Request, Response>(
+    mutation: MutationData<Request, Response>,
+  ): Maybe<Response> => (mt.isSuccess(mutation) ? mutation.response : null),
   isInProgress: <M extends MutationData<unknown, unknown>>(
     mutation: M,
   ): mutation is Extract<M, { status: "pending" }> =>

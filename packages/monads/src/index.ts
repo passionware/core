@@ -29,5 +29,6 @@ export {
   type MutationResponse,
   type MutationRequest,
   type IdleMutationData,
+  type MutationDataToInProgress,
 } from "./mutation.types";
 export { mt } from "./mutation";

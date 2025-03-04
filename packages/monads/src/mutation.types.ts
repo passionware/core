@@ -49,3 +49,6 @@ export type MutationDataToError<T extends MutationData<unknown, unknown>> =
  */
 export type MutationDataToPending<T extends MutationData<unknown, unknown>> =
   T extends { request: infer R } ? PendingMutationData<R> : never;
+
+export type MutationDataToInProgress<T extends MutationData<unknown, unknown>> =
+  Exclude<T, IdleMutationData>;
