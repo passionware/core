@@ -1,10 +1,11 @@
+import { Absent, Maybe } from "@passionware/monads";
 import {
   createSimpleEvent,
   SimpleEventEmitter,
   SimpleEventSubscribe,
   SimpleReadOnlyEvent,
 } from "@passionware/simple-event";
-import { SetStateAction } from "react";
+import { SetStateAction, useSyncExternalStore } from "react";
 
 export interface SimpleStore<Data, ChangeMeta = undefined> {
   addUpdateListener: SimpleEventSubscribe<Data, ChangeMeta>;
@@ -43,3 +44,23 @@ export const createSimpleStore = <T, ChangeMeta = undefined>(
     },
   };
 };
+
+const noopSubscribe = () => () => {};
+const noopGetCurrentValue = () => undefined;
+
+/**
+ * Hook to use the current value of a `SimpleStore`, with conditional subscription using `useSyncExternalStore`.
+ */
+export function useSimpleStore<T extends Maybe<SimpleStoreReadOnly<any>>>(
+  store: T,
+): T extends Absent
+  ? undefined
+  : T extends SimpleStoreReadOnly<infer U>
+    ? U
+    : never {
+  return useSyncExternalStore(
+    store ? store.addUpdateListener : noopSubscribe, // Use no-op subscribe if signal is absent
+    store ? store.getCurrentValue : noopGetCurrentValue, // Use no-op getter if signal is absent
+    noopGetCurrentValue, // Server-side rendering fallback
+  );
+}

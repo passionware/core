@@ -2,6 +2,7 @@ export {
   createSimpleStore,
   type SimpleStore,
   type SimpleStoreReadOnly,
+  useSimpleStore,
 } from "./simpleStore";
 
 export {
