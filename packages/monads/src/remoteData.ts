@@ -574,7 +574,7 @@ export const rd = {
   useMemoMap: <T, V, D extends DependencyList>(
     data: RemoteData<T>,
     mapper: (data: T, ...deps: D) => V,
-    deps: D = [] as unknown as D, // todo try with function overload in TypeScript
+    ...deps: D
   ) =>
     rd.useMemo(
       data,
