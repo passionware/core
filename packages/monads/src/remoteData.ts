@@ -394,6 +394,17 @@ export const rd = {
     }
     return a;
   },
+  /**
+   * Returns second only if first is successful
+   * @param first
+   * @param second
+   */
+  then<T, U>(first: RemoteData<T>, second: RemoteData<U>): RemoteData<U> {
+    if (rd.isSuccess(first)) {
+      return second;
+    }
+    return first;
+  },
   of<T>(data: T): RemoteDataSuccess<T> {
     return {
       status: "success",
