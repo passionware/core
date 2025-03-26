@@ -922,4 +922,26 @@ describe("RemoteData Utility", () => {
       );
     });
   });
+  describe("unveilPlaceholder", () => {
+    it("should unveil placeholder data", () => {
+      const data = rd.ofPlaceholder(10);
+      expect(rd.unveilPlaceholder(data)).toEqual(rd.ofPending());
+    });
+    it("should not change non-placeholder data", () => {
+      const data = rd.of(10);
+      expect(rd.unveilPlaceholder(data)).toBe(data);
+    });
+    it("should not change error data", () => {
+      const data = rd.ofError(new Error("Test error"));
+      expect(rd.unveilPlaceholder(data)).toBe(data);
+    });
+    it("should not change idle data", () => {
+      const data = rd.ofIdle();
+      expect(rd.unveilPlaceholder(data)).toBe(data);
+    });
+    it("should not change pending data", () => {
+      const data = rd.ofPending();
+      expect(rd.unveilPlaceholder(data)).toBe(data);
+    });
+  });
 });

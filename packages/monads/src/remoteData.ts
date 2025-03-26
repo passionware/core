@@ -405,6 +405,9 @@ export const rd = {
     }
     return first;
   },
+  /**
+   * Creates a RemoteData with success data.
+   */
   of<T>(data: T): RemoteDataSuccess<T> {
     return {
       status: "success",
@@ -412,6 +415,27 @@ export const rd = {
       isFetching: false,
       isPlaceholderData: false,
     };
+  },
+  /**
+   * Creates a RemoteData with placeholder data.
+   */
+  ofPlaceholder<T>(data: T): RemoteDataSuccess<T> {
+    return {
+      status: "success",
+      data,
+      isFetching: false,
+      isPlaceholderData: true,
+    };
+  },
+  /**
+   * If data is success with placeholder, it will be converted to pending.
+   * @param data
+   */
+  unveilPlaceholder<T>(data: RemoteData<T>): RemoteData<T> {
+    if (rd.isPlaceholderData(data)) {
+      return rd.ofPending();
+    }
+    return data;
   },
   fromMaybe: <T extends Maybe<unknown>>(
     data: T,
