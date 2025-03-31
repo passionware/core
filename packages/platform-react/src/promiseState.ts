@@ -88,6 +88,7 @@ function useMutation<Request, Response>(
         updateStateIfValid(currentToken, () =>
           setState(mt.ofError(request, ensureError(error))),
         );
+        throw error;
       }
     },
   };
@@ -111,7 +112,7 @@ function syncMutation<Request, Response>(
       cancelToken++; // Invalidate any ongoing mutations
       onStoreUpdate(mt.ofIdle());
     },
-    track: async (request: Request): Promise<Response> => {
+    track: async (request: Request) => {
       const currentToken = ++cancelToken; // Increment token for new mutation
 
       onStoreUpdate(mt.ofPending(request));
