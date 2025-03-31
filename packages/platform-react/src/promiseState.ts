@@ -111,7 +111,7 @@ function syncMutation<Request, Response>(
       cancelToken++; // Invalidate any ongoing mutations
       onStoreUpdate(mt.ofIdle());
     },
-    track: async (request: Request) => {
+    track: async (request: Request): Promise<Response> => {
       const currentToken = ++cancelToken; // Increment token for new mutation
 
       onStoreUpdate(mt.ofPending(request));
