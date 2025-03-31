@@ -88,7 +88,7 @@ function useMutation<Request, Response>(
         updateStateIfValid(currentToken, () =>
           setState(mt.ofError(request, ensureError(error))),
         );
-        throw error;
+        return Promise.reject(error);
       }
     },
   };
