@@ -77,18 +77,18 @@ function useMutation<Request, Response>(
       const currentToken = ++cancelTokenRef.current;
 
       setState(mt.ofPending(request));
-      const promise = mutation(request);
       try {
+        const promise = mutation(request);
         const data = await promise;
         updateStateIfValid(currentToken, () =>
           setState(mt.ofSuccess(request, data)),
         );
+        return data;
       } catch (error) {
         updateStateIfValid(currentToken, () =>
           setState(mt.ofError(request, ensureError(error))),
         );
       }
-      return promise;
     },
   };
 }
