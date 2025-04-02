@@ -165,9 +165,82 @@ function syncRemoteData<Response>(
   };
 }
 
+function useMutationArray<Key, Request, Response>(
+  mutation: (request: Request) => Promise<Response>,
+  requestToId: (request: Request) => Key,
+) {
+  const [states, setStates] = useState<
+    Map<Key, MutationData<Request, Response>>
+  >(new Map());
+  const cancelTokenRef = useRef(new Map<Key, number>());
+
+  const updateStateIfValid = (
+    key: Key,
+    token: number,
+    updateFn: () => void,
+  ) => {
+    if (cancelTokenRef.current.get(key) === token) {
+      updateFn();
+    }
+  };
+
+  const get = (key: Key): MutationData<Request, Response> =>
+    states.get(key) ?? mt.ofIdle();
+
+  return {
+    state: states,
+    get,
+    reset: (key: Key) => {
+      cancelTokenRef.current.set(
+        key,
+        (cancelTokenRef.current.get(key) ?? 0) + 1,
+      );
+      setStates((prev) => {
+        const copy = new Map(prev);
+        copy.set(key, mt.ofIdle());
+        return copy;
+      });
+    },
+    track: async (request: Request) => {
+      const key = requestToId(request);
+      const token = (cancelTokenRef.current.get(key) ?? 0) + 1;
+      cancelTokenRef.current.set(key, token);
+
+      setStates((prev) => {
+        const copy = new Map(prev);
+        copy.set(key, mt.ofPending(request));
+        return copy;
+      });
+
+      try {
+        const data = await mutation(request);
+        updateStateIfValid(key, token, () => {
+          setStates((prev) => {
+            const copy = new Map(prev);
+            copy.set(key, mt.ofSuccess(request, data));
+            return copy;
+          });
+        });
+        return data;
+      } catch (error) {
+        const err = ensureError(error);
+        updateStateIfValid(key, token, () => {
+          setStates((prev) => {
+            const copy = new Map(prev);
+            copy.set(key, mt.ofError(request, err));
+            return copy;
+          });
+        });
+        throw err;
+      }
+    },
+  };
+}
+
 export const promiseState = {
   useRemoteData,
   useMutation,
+  useMutationArray,
   syncMutation,
   syncRemoteData,
 };

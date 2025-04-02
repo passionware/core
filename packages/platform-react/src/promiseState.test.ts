@@ -360,4 +360,94 @@ describe("promiseState", () => {
       );
     });
   });
+
+  describe("useMutationArray", () => {
+    type Request = { id: string; value: string };
+    type Response = string;
+
+    it("should initialize with empty state", () => {
+      const { result } = renderHook(() =>
+        promiseState.useMutationArray<string, Request, Response>(
+          (r) => Promise.resolve(r.value),
+          (r) => r.id,
+        ),
+      );
+      expect(result.current.state.size).toBe(0);
+    });
+
+    it("should track multiple mutations by key", async () => {
+      const { result } = renderHook(() =>
+        promiseState.useMutationArray<string, Request, Response>(
+          (req) => Promise.resolve(req.value + "-response"),
+          (req) => req.id,
+        ),
+      );
+
+      const req1 = { id: "a", value: "foo" };
+      const req2 = { id: "b", value: "bar" };
+
+      await act(async () => {
+        await result.current.track(req1);
+        await result.current.track(req2);
+      });
+
+      expect(result.current.get("a")).toEqual(
+        mt.ofSuccess(req1, "foo-response"),
+      );
+      expect(result.current.get("b")).toEqual(
+        mt.ofSuccess(req2, "bar-response"),
+      );
+    });
+
+    it("should return idle state from get() for unknown key", () => {
+      const { result } = renderHook(() =>
+        promiseState.useMutationArray<string, Request, Response>(
+          (r) => Promise.resolve(r.value),
+          (r) => r.id,
+        ),
+      );
+
+      expect(result.current.get("missing")).toEqual(mt.ofIdle());
+    });
+
+    it("should reset specific mutation state to idle", async () => {
+      const { result } = renderHook(() =>
+        promiseState.useMutationArray<string, Request, Response>(
+          (r) => Promise.resolve(r.value),
+          (r) => r.id,
+        ),
+      );
+
+      const req = { id: "reset-me", value: "x" };
+
+      await act(async () => {
+        await result.current.track(req);
+      });
+
+      act(() => {
+        result.current.reset("reset-me");
+      });
+
+      expect(result.current.get("reset-me")).toEqual(mt.ofIdle());
+    });
+
+    it("should not update mutation from old request after reset", async () => {
+      const { result } = renderHook(() =>
+        promiseState.useMutationArray<string, Request, Response>(
+          (r) => new Promise((res) => setTimeout(() => res(r.value), 100)),
+          (r) => r.id,
+        ),
+      );
+
+      const req = { id: "foo", value: "late" };
+
+      act(() => {
+        void result.current.track(req);
+        result.current.reset("foo");
+      });
+
+      await new Promise((r) => setTimeout(r, 110));
+      expect(result.current.get("foo")).toEqual(mt.ofIdle());
+    });
+  });
 });
