@@ -1,6 +1,7 @@
 import { rd, RemoteData } from "@passionware/monads";
 import { delay } from "@passionware/platform-js";
-import { useEffect, useState, type DependencyList } from "react";
+import { isEqual } from "lodash";
+import { useEffect, useState, type DependencyList, useRef } from "react";
 
 export type TestQuery<T> = {
   remoteData: RemoteData<T>;
@@ -26,7 +27,13 @@ export const testQuery = {
     remoteData,
     delay,
   }),
-  useData: <T>(query: TestQuery<T>) => {
+  useData: <T>(query_: TestQuery<T>) => {
+    const queryRef = useRef(query_);
+    if (!isEqual(queryRef.current, query_)) {
+      queryRef.current = query_;
+    }
+    const query = queryRef.current;
+
     const [state, setState] = useState<RemoteData<T>>(() =>
       getInitialState(query),
     );
