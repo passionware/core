@@ -40,4 +40,22 @@ describe("useTestQuery", () => {
       expect(data).toBe(1);
     });
   });
+
+  describe("useData stabilization", () => {
+    it("should preserve state when a new, deeply equal query object is passed", () => {
+      const query1 = testQuery.of(rd.of({ foo: 42 }), 0);
+      const { result, rerender } = renderHook(
+        (query) => testQuery.useData(query),
+        { initialProps: query1 },
+      );
+      const initialState = result.current;
+
+      // Tworzymy nowy obiekt query, który jest głęboko równy query1, ale ma inną referencję
+      const query2 = testQuery.of(rd.of({ foo: 42 }), 0);
+      rerender(query2);
+
+      // Stan powinien pozostać ten sam, ponieważ mechanizm stabilizacji powinien zapobiec zbędnej aktualizacji
+      expect(result.current).toBe(initialState);
+    });
+  });
 });
