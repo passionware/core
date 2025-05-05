@@ -10,9 +10,9 @@ export {
 
 export {
   rd,
-  type RemoteCombinedError,
-  type MappingError,
-  type RemoteDataGetError,
+  RemoteCombinedError,
+  MappingError,
+  RemoteDataGetError,
 } from "./remoteData";
 
 export { maybe, type Maybe, type Absent, type Present } from "./maybe";
