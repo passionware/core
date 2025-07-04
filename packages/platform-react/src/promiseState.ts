@@ -1,6 +1,7 @@
 import { mt, MutationData, rd, RemoteData } from "@passionware/monads";
 import { ensureError } from "@passionware/platform-js";
-import { useEffect, useRef, useState } from "react";
+import { createSimpleStore } from "@passionware/simple-store";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 function useRemoteData<Response>() {
   const [state, setState] = useState<RemoteData<Response>>(mt.ofIdle());
@@ -237,10 +238,64 @@ function useMutationArray<Key, Request, Response>(
   };
 }
 
+function createMutationStore<Request, Response>(
+  mutation: (request: Request) => Promise<Response>,
+  requestToId: (request: Request) => string,
+) {
+  const mutationsStore = createSimpleStore<
+    Record<string, MutationData<Request, Response>>
+  >({});
+
+  const get = (request: Request): MutationData<Request, Response> =>
+    mutationsStore.getCurrentValue()[requestToId(request)] ?? mt.ofIdle();
+
+  const track = async (request: Request) => {
+    const id = requestToId(request);
+    mutationsStore.setNewValue((x) => ({
+      ...x,
+      [id]: mt.ofPending(request),
+    }));
+
+    try {
+      const data = await mutation(request);
+      mutationsStore.setNewValue((x) => ({
+        ...x,
+        [id]: mt.ofSuccess(request, data),
+      }));
+      return data;
+    } catch (error) {
+      mutationsStore.setNewValue((x) => ({
+        ...x,
+        [id]: mt.ofError(request, ensureError(error)),
+      }));
+      throw error;
+    }
+  };
+
+  const useStore = () =>
+    useSyncExternalStore(
+      mutationsStore.addUpdateListener,
+      mutationsStore.getCurrentValue,
+    );
+
+  const useMutation = (request: Request) => {
+    const data = useStore();
+    return data[requestToId(request)] ?? mt.ofIdle();
+  };
+
+  return {
+    get,
+    track,
+    useStore,
+    useMutation,
+  };
+}
+
 export const promiseState = {
   useRemoteData,
   useMutation,
   useMutationArray,
   syncMutation,
   syncRemoteData,
+  createMutationStore,
 };

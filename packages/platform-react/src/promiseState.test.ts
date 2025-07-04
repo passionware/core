@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 import { mt, rd } from "@passionware/monads";
+import { delay } from "@passionware/platform-js";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { promiseState } from "./promiseState";
@@ -448,6 +449,110 @@ describe("promiseState", () => {
 
       await new Promise((r) => setTimeout(r, 110));
       expect(result.current.get("foo")).toEqual(mt.ofIdle());
+    });
+  });
+
+  describe("createMutationStore", () => {
+    it("should initialize with idle state", () => {
+      const store = promiseState.createMutationStore(
+        (req) => Promise.resolve(req),
+        String,
+      );
+      expect(store.get("request")).toEqual(mt.ofIdle());
+    });
+
+    it("should set state to pending with request when track is called and then success when the promise resolves", async () => {
+      const store = promiseState.createMutationStore(
+        (req) => Promise.resolve(req),
+        String,
+      );
+
+      const promise = act(() => store.track("request"));
+
+      expect(store.get("request")).toEqual(mt.ofPending("request"));
+      await promise;
+      expect(store.get("request")).toEqual(mt.ofSuccess("request", "request"));
+    });
+
+    it("should set state to error when the promise rejects", async () => {
+      const store = promiseState.createMutationStore(async () => {
+        await delay(100);
+        return Promise.reject("mutation error");
+      }, String);
+
+      const promise = store.track("request");
+
+      expect(store.get("request")).toEqual(mt.ofPending("request"));
+      await expect(promise).rejects.toThrow("mutation error");
+
+      expect(store.get("request")).toEqual(
+        mt.ofError("request", new Error("mutation error")),
+      );
+    });
+
+    describe("createMutationStore - concurrent mutations", () => {
+      it("should handle multiple concurrent mutations for different requests", async () => {
+        const store = promiseState.createMutationStore(
+          (req: string) =>
+            delay(parseInt(req) * 10).then(() => `response-${req}`),
+          String,
+        );
+
+        // Start multiple mutations
+        act(() => {
+          store.track("1"); // 10ms
+          store.track("5"); // 50ms
+          store.track("2"); // 20ms
+        });
+
+        // All should be pending initially
+        expect(store.get("1")).toEqual(mt.ofPending("1"));
+        expect(store.get("5")).toEqual(mt.ofPending("5"));
+        expect(store.get("2")).toEqual(mt.ofPending("2"));
+
+        // Wait for fastest to complete
+        await delay(15);
+        expect(store.get("1")).toEqual(mt.ofSuccess("1", "response-1"));
+        expect(store.get("5")).toEqual(mt.ofPending("5"));
+        expect(store.get("2")).toEqual(mt.ofPending("2"));
+
+        // Wait for medium to complete
+        await delay(25);
+        expect(store.get("2")).toEqual(mt.ofSuccess("2", "response-2"));
+
+        // Wait for slowest to complete
+        await delay(60);
+        expect(store.get("5")).toEqual(mt.ofSuccess("5", "response-5"));
+      });
+
+      it("should handle rapid updates to the same request", async () => {
+        const store = promiseState.createMutationStore(
+          (req: string) => delay(100).then(() => `response-${req}`),
+          String,
+        );
+
+        // Rapidly update the same request
+        act(() => {
+          store.track("same");
+        });
+
+        act(() => {
+          store.track("same");
+        });
+
+        act(() => {
+          store.track("same");
+        });
+
+        // Should show pending
+        expect(store.get("same")).toEqual(mt.ofPending("same"));
+
+        // Wait for completion
+        await delay(110);
+        expect(store.get("same")).toEqual(
+          mt.ofSuccess("same", "response-same"),
+        );
+      });
     });
   });
 });
