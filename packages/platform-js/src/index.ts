@@ -7,3 +7,4 @@ export * from "./buffer";
 export * from "./messaging";
 export * from "./messaging.stream";
 export * from "./delay";
+export * from "./batcher";

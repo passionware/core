@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "seedrandom": "^3.0.5",
-    "@types/seedrandom": "^3.0.8"
+    "@types/seedrandom": "^3.0.8",
+    "@yornaath/batshit": "^0.10.1"
   }
 }
