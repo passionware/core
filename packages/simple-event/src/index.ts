@@ -19,8 +19,8 @@ export type SimpleEventEmitter<E, Metadata> = [Metadata] extends [undefined]
 export interface SimpleEvent<E = void, Metadata = undefined> {
   addListener: SimpleEventSubscribe<E, Metadata>;
   emit: SimpleEventEmitter<E, Metadata>;
-  waitFor(predicate: (e: E) => boolean): Promise<E>;
   waitFor<T extends E>(predicate: (e: E) => e is T): Promise<T>;
+  waitFor(predicate: (e: E) => boolean): Promise<E>;
   map<T>(mapper: (e: E) => T): SimpleEvent<T, Metadata>;
   filter(predicate: (e: E) => boolean): SimpleEvent<E, Metadata>;
   filter<T extends E>(predicate: (e: E) => e is T): SimpleEvent<T, Metadata>;

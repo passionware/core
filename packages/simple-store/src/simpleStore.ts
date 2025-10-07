@@ -12,6 +12,10 @@ export interface SimpleStore<Data, ChangeMeta = undefined> {
   setNewValue: SimpleEventEmitter<SetStateAction<Data>, ChangeMeta>;
   getCurrentValue: () => Data;
   toReadOnlyEvent: () => SimpleReadOnlyEvent<Data, ChangeMeta>;
+  waitFor: {
+    <S extends Data>(predicate: (value: Data) => value is S): Promise<S>;
+    (predicate: (value: Data) => boolean): Promise<Data>;
+  };
 }
 
 export type SimpleStoreReadOnly<Data, ChangeMeta = undefined> = Omit<
@@ -33,6 +37,23 @@ export const createSimpleStore = <T, ChangeMeta = undefined>(
     lastValue = newValue;
     simpleEvent.emit(newValue, metadata);
   };
+  const waitFor: SimpleStore<T, ChangeMeta>["waitFor"] = (
+    predicate: (value: T) => boolean,
+  ) => {
+    return new Promise<any>((resolve) => {
+      const value = lastValue;
+      if (predicate(value)) {
+        resolve(value);
+        return;
+      }
+      const unsubscribe = simpleEvent.addListener((value: T) => {
+        if (predicate(value)) {
+          unsubscribe();
+          resolve(value);
+        }
+      });
+    });
+  };
   return {
     // again, casting since we can't check ChangeMeta being undefined in runtime outside emit call
     setNewValue: emit as SimpleEventEmitter<SetStateAction<T>, ChangeMeta>,
@@ -42,6 +63,7 @@ export const createSimpleStore = <T, ChangeMeta = undefined>(
       const { emit, ...readOnlyEvent } = simpleEvent;
       return readOnlyEvent;
     },
+    waitFor,
   };
 };
 

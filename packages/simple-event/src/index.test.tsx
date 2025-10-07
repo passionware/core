@@ -1,4 +1,5 @@
 /** @vitest-environment jsdom */
+import { maybe, Maybe } from "@passionware/monads";
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -119,6 +120,42 @@ describe("simple-event", () => {
       await Promise.resolve();
       expect(resolved).toBe(true);
       await expect(promise).resolves.toBe(5);
+    });
+
+    it("waitFor should work with type guard and return narrowed type for Maybe<string>", async () => {
+      const { waitFor, emit } = createSimpleEvent<Maybe<string>>();
+
+      const promise = waitFor(maybe.isPresent);
+
+      emit(undefined);
+      emit("ok");
+
+      await expect(promise).resolves.toBe("ok");
+    });
+
+    it("waitFor should resolve only once with the first matching event", async () => {
+      const { waitFor, emit } = createSimpleEvent<number>();
+
+      const promise = waitFor((v) => v > 0);
+
+      emit(-1);
+      emit(1);
+      emit(2);
+
+      await expect(promise).resolves.toBe(1);
+    });
+
+    it("waitFor should allow multiple concurrent waiters", async () => {
+      const { waitFor, emit } = createSimpleEvent<number>();
+
+      const p1 = waitFor((v) => v === 1);
+      const p2 = waitFor((v) => v === 2);
+
+      emit(2);
+      emit(1);
+
+      await expect(p1).resolves.toBe(1);
+      await expect(p2).resolves.toBe(2);
     });
   });
 
