@@ -95,7 +95,7 @@ export const rd = {
   mapOrElse<T, U, V>(
     remoteData: RemoteData<T>,
     f: (data: T) => U,
-    defaultValue: V,
+    defaultValue: V
   ): U | V {
     switch (remoteData.status) {
       case "idle":
@@ -110,7 +110,7 @@ export const rd = {
   mapOrMake<T, U, V>(
     remoteData: RemoteData<T>,
     f: (data: T) => U,
-    make: () => V,
+    make: () => V
   ): U | V {
     switch (remoteData.status) {
       case "idle":
@@ -131,7 +131,7 @@ export const rd = {
    */
   mapMonadic<T, U>(
     remoteData: RemoteData<T>,
-    f: (data: T) => RemoteData<U>,
+    f: (data: T) => RemoteData<U>
   ): RemoteData<U> {
     switch (remoteData.status) {
       case "idle":
@@ -149,7 +149,7 @@ export const rd = {
    */
   flatMap<T, U>(
     remoteData: RemoteData<T>,
-    f: (data: T) => RemoteData<U>,
+    f: (data: T) => RemoteData<U>
   ): RemoteData<U> {
     switch (remoteData.status) {
       case "idle":
@@ -171,7 +171,7 @@ export const rd = {
    */
   unsafeFlatMap<T, U>(
     remoteData: RemoteData<T>,
-    f: (data: T) => RemoteData<U>,
+    f: (data: T) => RemoteData<U>
   ): RemoteData<U> {
     switch (remoteData.status) {
       case "idle":
@@ -184,7 +184,7 @@ export const rd = {
   },
   mapError<T>(
     remoteData: RemoteData<T>,
-    f: (error: Error) => Error,
+    f: (error: Error) => Error
   ): RemoteData<T> {
     switch (remoteData.status) {
       case "idle":
@@ -197,7 +197,7 @@ export const rd = {
   },
   mapErrorMonadic<T>(
     remoteData: RemoteData<T>,
-    f: (error: Error) => RemoteData<T>,
+    f: (error: Error) => RemoteData<T>
   ): RemoteData<T> {
     switch (remoteData.status) {
       case "idle":
@@ -220,7 +220,7 @@ export const rd = {
   },
   getOrThrow<T>(
     remoteData: RemoteData<T>,
-    message = "Attempted to get value from non-successful RemoteData",
+    message = "Attempted to get value from non-successful RemoteData"
   ): T {
     if (remoteData.status === "success") {
       return remoteData.data;
@@ -228,7 +228,7 @@ export const rd = {
     if (remoteData.status === "error") {
       throw new RemoteDataGetError(
         `${message}: ${remoteData.error.message}`,
-        remoteData.error,
+        remoteData.error
       );
     }
     throw new Error(message);
@@ -440,7 +440,7 @@ export const rd = {
   fromMaybe: <T extends Maybe<unknown>>(
     data: T,
     error: Error | (() => Error) = () =>
-      new Error("Expected value to be present"),
+      new Error("Expected value to be present")
   ) => {
     if (maybe.isPresent(data)) {
       return rd.of(data);
@@ -481,7 +481,7 @@ export const rd = {
    * @param remoteData
    */
   isAwaiting<T>(
-    remoteData: RemoteData<T>,
+    remoteData: RemoteData<T>
   ): remoteData is RemoteDataPending | RemoteDataIdle {
     return remoteData.status === "pending" || remoteData.status === "idle";
   },
@@ -492,7 +492,7 @@ export const rd = {
     return remoteData.status === "success";
   },
   isPlaceholderData<T>(
-    remoteData: RemoteData<T>,
+    remoteData: RemoteData<T>
   ): remoteData is Extract<RemoteData<T>, { isPlaceholderData: true }> {
     return remoteData.status === "success" && remoteData.isPlaceholderData;
   },
@@ -530,8 +530,8 @@ export const rd = {
     data: RemoteData<T>,
     effect: (
       data: RemoteData<T>,
-      prevRemoteData: RemoteData<T>,
-    ) => void | (() => void),
+      prevRemoteData: RemoteData<T>
+    ) => void | (() => void)
   ) => {
     const lastRemoteDataRef = useRef(data);
 
@@ -548,7 +548,7 @@ export const rd = {
   },
   useDataEffect: <T>(
     data: RemoteData<T>,
-    effect: (data: T, prevRemoteData: RemoteData<T>) => void | (() => void),
+    effect: (data: T, prevRemoteData: RemoteData<T>) => void | (() => void)
   ) => {
     const lastRemoteDataRef = useRef(data);
     const remoteDataRef = useRef(data);
@@ -589,7 +589,7 @@ export const rd = {
     // todo useMemo shuold accept also an array to memoize result based on all remote datas all their states
     data: RemoteData<T>,
     producer: (data: RemoteData<T>, ...deps: D) => V,
-    deps: D = [] as unknown as D, // todo try with function overload in TypeScript
+    deps: D = [] as unknown as D // todo try with function overload in TypeScript
   ) => {
     const memoFields = [
       data.status, // we should refresh if status changes
@@ -614,9 +614,9 @@ export const rd = {
     rd.useMemo(
       data,
       (data, ...deps) => rd.map(data, (data) => mapper(data, ...deps)),
-      deps ?? [],
+      deps ?? []
     ),
-    useMemoMapMonadic: <T, V, D extends DependencyList>(
+  useMemoMapMonadic: <T, V, D extends DependencyList>(
     data: RemoteData<T>,
     mapper: (data: T, ...deps: D) => RemoteData<V>,
     ...deps: D
@@ -624,10 +624,10 @@ export const rd = {
     rd.useMemo(
       data,
       (data, ...deps) => rd.mapMonadic(data, (data) => mapper(data, ...deps)),
-      deps ?? [],
+      deps ?? []
     ),
   combine<T extends Record<string, RemoteData<any>>>(
-    obj: T,
+    obj: T
   ): RemoteData<{
     [K in keyof T]: T[K] extends RemoteData<infer U> ? U : never;
   }> {
@@ -662,7 +662,7 @@ export const rd = {
     if (finalState.hasError) {
       const combinedError = new RemoteCombinedError(
         `${Object.values(finalState.errors).join(", ")}`,
-        finalState.errors,
+        finalState.errors
       );
       return rd.ofError(combinedError);
     }
@@ -671,7 +671,7 @@ export const rd = {
     }
     if (finalState.hasSuccess && finalState.hasIdle) {
       return rd.ofError(
-        new Error("Combine does not support idle and success together"),
+        new Error("Combine does not support idle and success together")
       );
     }
     if (finalState.hasIdle) {
@@ -680,7 +680,7 @@ export const rd = {
     return rd.of(finalState.result);
   },
   combineAll: <T extends RemoteData<any>[]>(
-    remotes: T,
+    remotes: T
   ): RemoteData<T[number] extends RemoteData<infer U> ? U[] : never[]> => {
     if (remotes.length === 0) {
       return rd.of([] as T[number] extends RemoteData<infer U> ? U[] : never[]);
@@ -709,14 +709,14 @@ export const rd = {
       return rd.ofError(
         new RemoteCombinedError(
           `Errors in combined remotes: ${errors.map((e) => e.message).join(", ")}`,
-          Object.fromEntries(errors.map((e, i) => [i, e])),
-        ),
+          Object.fromEntries(errors.map((e, i) => [i, e]))
+        )
       );
     }
 
     if (hasIdle && results.length > 0) {
       return rd.ofError(
-        new Error("Combine does not support idle and success together"),
+        new Error("Combine does not support idle and success together")
       );
     }
 
@@ -729,7 +729,7 @@ export const rd = {
     }
 
     return rd.of(
-      results as T[number] extends RemoteData<infer U> ? U[] : never[],
+      results as T[number] extends RemoteData<infer U> ? U[] : never[]
     );
   },
   fromMutation: mutationDataToRemoteData,
@@ -754,6 +754,6 @@ export class RemoteCombinedError extends Error {
 type NoFunction<T> = T extends Function ? never : T;
 
 const isFunction = <T>(
-  value: T,
+  value: T
 ): value is T extends (...args: any[]) => any ? T : never =>
   typeof value === "function";
