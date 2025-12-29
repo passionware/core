@@ -792,27 +792,46 @@ describe("RemoteData Utility", () => {
 
   describe("useMemoMapMonadic", () => {
     it("should map the data", () => {
-      const mapper = vi.fn((x: number, num: number) => rd.of((x + 1) * num));
-      const { result, rerender } = renderHook(
-        (num) => rd.useMemoMapMonadic(rd.of(1), mapper, [num]),
-        { initialProps: 10 }
+      const mapper = vi.fn((x: number) => rd.of(x + 1));
+      const { result } = renderHook(
+        (num) => rd.useMemoMapMonadic(num, mapper),
+        { initialProps: rd.of(10) }
       );
-      expect(result.current).toEqual(rd.of(20));
+      expect(result.current).toEqual(rd.of(11));
       expect(mapper).toHaveBeenCalledTimes(1);
     });
 
     it("should memoize the data", () => {
-      const mapper = vi.fn((x: number, num: number) => rd.of((x + 1) * num));
+      const mapper = vi.fn((x: number) => rd.of(x + 1));
       const { result, rerender } = renderHook(
-        (num) => rd.useMemoMapMonadic(rd.of(1), mapper, [num]),
-        { initialProps: 10 }
+        (num) => rd.useMemoMapMonadic(num, mapper),
+        { initialProps: rd.of(10) }
       );
-      expect(result.current).toEqual(rd.of(20));
-      rerender(10);
-      expect(result.current).toEqual(rd.of(20));
-      rerender(20);
-      expect(result.current).toEqual(rd.of(40));
-      expect(mapper).toHaveBeenCalledTimes(3);
+      expect(result.current).toEqual(rd.of(11));
+      rerender(rd.of(10));
+      expect(result.current).toEqual(rd.of(11));
+      rerender(rd.of(20));
+      expect(result.current).toEqual(rd.of(21));
+      expect(mapper).toHaveBeenCalledTimes(2);
+    });
+
+    it("should memoize the data based on all dependencies", () => {
+      const mapper = vi.fn((x: number, dep1: number, dep2: number) =>
+        rd.of(x + dep1 + dep2)
+      );
+      const { result, rerender } = renderHook(
+        ({ subject, dep1, dep2 }) =>
+          rd.useMemoMapMonadic(subject, mapper, dep1, dep2),
+        { initialProps: { subject: rd.of(10), dep1: 1, dep2: 2 } }
+      );
+      expect(result.current).toEqual(rd.of(13));
+      expect(mapper).toHaveBeenCalledTimes(1); // Called once for initial render
+      rerender({ subject: rd.of(10), dep1: 1, dep2: 2 });
+      expect(result.current).toEqual(rd.of(13));
+      expect(mapper).toHaveBeenCalledTimes(1); // Should still be 1 - memoized
+      rerender({ subject: rd.of(10), dep1: 2, dep2: 3 });
+      expect(result.current).toEqual(rd.of(15));
+      expect(mapper).toHaveBeenCalledTimes(2); // Called again due to dep change
     });
   });
 
