@@ -47,7 +47,7 @@
     "url": "https://github.com/passionware/core.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org"
   },
   "overrides": {
     "use-last": {
