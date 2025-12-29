@@ -616,6 +616,16 @@ export const rd = {
       (data, ...deps) => rd.map(data, (data) => mapper(data, ...deps)),
       deps ?? [],
     ),
+    useMemoMapMonadic: <T, V, D extends DependencyList>(
+    data: RemoteData<T>,
+    mapper: (data: T, ...deps: D) => RemoteData<V>,
+    ...deps: D
+  ) =>
+    rd.useMemo(
+      data,
+      (data, ...deps) => rd.mapMonadic(data, (data) => mapper(data, ...deps)),
+      deps ?? [],
+    ),
   combine<T extends Record<string, RemoteData<any>>>(
     obj: T,
   ): RemoteData<{

@@ -17,10 +17,10 @@ describe("RemoteData Utility", () => {
     };
     const example = rd.of(10);
     expect(rd.map(example, mapper)).toEqual(
-      rd.ofError(new MappingError(new Error("Test error + 10"))),
+      rd.ofError(new MappingError(new Error("Test error + 10")))
     );
     expect(() => rd.unsafeMap(example, mapper)).toThrowError(
-      new MappingError(new Error("Test error + 10")),
+      new MappingError(new Error("Test error + 10"))
     );
   });
 
@@ -28,7 +28,7 @@ describe("RemoteData Utility", () => {
     expect(rd.replace(rd.of(10), 20)).toEqual(rd.of(20));
     expect(rd.replace(rd.ofPending(), 20)).toEqual(rd.ofPending());
     expect(rd.replace(rd.ofError(new Error("Test error")), 20)).toEqual(
-      rd.ofError(new Error("Test error")),
+      rd.ofError(new Error("Test error"))
     );
   });
 
@@ -82,10 +82,10 @@ describe("RemoteData Utility", () => {
     const pendingData = rd.ofPending();
     const errorData = rd.ofError(new Error("Test error"));
     expect(() => rd.getOrThrow(errorData, "Fallback error message")).toThrow(
-      "Fallback error message: Test error",
+      "Fallback error message: Test error"
     );
     expect(() => rd.getOrThrow(pendingData, "Fallback error message")).toThrow(
-      "Fallback error message",
+      "Fallback error message"
     );
   });
 
@@ -107,7 +107,7 @@ describe("RemoteData Utility", () => {
     const mappedData = rd.mapOrMake(
       successData,
       (num) => num * 2,
-      () => 0,
+      () => 0
     );
     expect(mappedData).toBe(20);
   });
@@ -119,15 +119,15 @@ describe("RemoteData Utility", () => {
       rd.mapOrMake(
         pendingData,
         () => 42,
-        () => 0,
-      ),
+        () => 0
+      )
     ).toBe(0);
     expect(
       rd.mapOrMake(
         errorData,
         () => 42,
-        () => 0,
-      ),
+        () => 0
+      )
     ).toBe(0);
   });
 
@@ -148,7 +148,7 @@ describe("RemoteData Utility", () => {
     const errorData = rd.ofError(new Error("Test error"));
     const mappedData = rd.mapError(
       errorData,
-      (error) => new Error(error.message + " mapped"),
+      (error) => new Error(error.message + " mapped")
     );
     expect(mappedData).toEqual(rd.ofError(new Error("Test error mapped")));
   });
@@ -157,10 +157,10 @@ describe("RemoteData Utility", () => {
     const pendingData = rd.ofPending();
     const successData = rd.of(10);
     expect(
-      rd.mapError(pendingData, (error) => new Error(error.message + " mapped")),
+      rd.mapError(pendingData, (error) => new Error(error.message + " mapped"))
     ).toEqual(pendingData);
     expect(
-      rd.mapError(successData, (error) => new Error(error.message + " mapped")),
+      rd.mapError(successData, (error) => new Error(error.message + " mapped"))
     ).toEqual(successData);
   });
 
@@ -168,12 +168,12 @@ describe("RemoteData Utility", () => {
     const errorData = rd.ofError(new Error("Test error"));
     expect(
       rd.mapErrorMonadic(errorData, (error) =>
-        rd.ofError(new Error(error.message + " mapped")),
-      ),
+        rd.ofError(new Error(error.message + " mapped"))
+      )
     ).toEqual(rd.ofError(new Error("Test error mapped")));
 
     expect(rd.mapErrorMonadic(errorData, () => rd.ofPending())).toEqual(
-      rd.ofPending(),
+      rd.ofPending()
     );
   });
 
@@ -182,13 +182,13 @@ describe("RemoteData Utility", () => {
     const successData = rd.of(10);
     expect(
       rd.mapErrorMonadic(pendingData, (error) =>
-        rd.ofError(new Error(error.message + " mapped")),
-      ),
+        rd.ofError(new Error(error.message + " mapped"))
+      )
     ).toEqual(pendingData);
     expect(
       rd.mapErrorMonadic(successData, (error) =>
-        rd.ofError(new Error(error.message + " mapped")),
-      ),
+        rd.ofError(new Error(error.message + " mapped"))
+      )
     ).toEqual(successData);
   });
 
@@ -223,14 +223,14 @@ describe("RemoteData Utility", () => {
         throw new Error("FlatMap error");
       });
       expect(flatMappedData).toEqual(
-        rd.ofError(new MappingError(new Error("FlatMap error"))),
+        rd.ofError(new MappingError(new Error("FlatMap error")))
       );
     });
 
     it("unsafeFlatMap should flatMap over success data correctly", () => {
       const successData = rd.of(10);
       const unsafeFlatMappedData = rd.unsafeFlatMap(successData, (num) =>
-        rd.of(num * 2),
+        rd.of(num * 2)
       );
       expect(unsafeFlatMappedData).toEqual(rd.of(20));
     });
@@ -238,7 +238,7 @@ describe("RemoteData Utility", () => {
     it("unsafeFlatMap should return original remoteData if the state is pending", () => {
       const pendingData = rd.widen<number>(rd.ofPending());
       const unsafeFlatMappedData = rd.unsafeFlatMap(pendingData, (num) =>
-        rd.of(num * 2),
+        rd.of(num * 2)
       );
       expect(unsafeFlatMappedData).toEqual(pendingData);
     });
@@ -248,7 +248,7 @@ describe("RemoteData Utility", () => {
       expect(() =>
         rd.unsafeFlatMap(successData, () => {
           throw new Error("UnsafeFlatMap error");
-        }),
+        })
       ).toThrowError(new Error("UnsafeFlatMap error"));
     });
   });
@@ -325,8 +325,8 @@ describe("RemoteData Utility", () => {
       const combinedData = rd.combine({ a: successData, b: idleData });
       expect(combinedData).toEqual(
         rd.ofError(
-          new Error("Combine does not support idle and success together"),
-        ),
+          new Error("Combine does not support idle and success together")
+        )
       );
     });
   });
@@ -344,7 +344,7 @@ describe("RemoteData Utility", () => {
 
     it("returns pending if any state is pending", () => {
       expect(rd.combineAll([rd.of(1), rd.ofPending(), rd.of(3)])).toEqual(
-        rd.ofPending(),
+        rd.ofPending()
       );
     });
 
@@ -354,22 +354,22 @@ describe("RemoteData Utility", () => {
         rd.ofError(
           new RemoteCombinedError("Errors in combined remotes: Error", {
             0: error,
-          }),
-        ),
+          })
+        )
       );
     });
 
     it("returns an error if both idle and success states are present", () => {
       expect(rd.combineAll([rd.ofIdle(), rd.of(2)])).toEqual(
         rd.ofError(
-          new Error("Combine does not support idle and success together"),
-        ),
+          new Error("Combine does not support idle and success together")
+        )
       );
     });
 
     it("returns pending for all pending states", () => {
       expect(rd.combineAll([rd.ofPending(), rd.ofPending()])).toEqual(
-        rd.ofPending(),
+        rd.ofPending()
       );
     });
 
@@ -384,9 +384,9 @@ describe("RemoteData Utility", () => {
         rd.ofError(
           new RemoteCombinedError(
             "Errors in combined remotes: Error 1, Error 2",
-            { 0: error1, 1: error2 },
-          ),
-        ),
+            { 0: error1, 1: error2 }
+          )
+        )
       );
     });
   });
@@ -696,7 +696,7 @@ describe("RemoteData Utility", () => {
             initialProps: {
               remoteData: rd.widen<number>(rd.ofIdle()),
             },
-          },
+          }
         );
         expect(effect).toHaveBeenCalledTimes(0);
         screen.rerender({ remoteData: rd.of(1) });
@@ -790,6 +790,32 @@ describe("RemoteData Utility", () => {
     });
   });
 
+  describe("useMemoMapMonadic", () => {
+    it("should map the data", () => {
+      const mapper = vi.fn((x: number, num: number) => rd.of((x + 1) * num));
+      const { result, rerender } = renderHook(
+        (num) => rd.useMemoMapMonadic(rd.of(1), mapper, [num]),
+        { initialProps: 10 }
+      );
+      expect(result.current).toEqual(rd.of(20));
+      expect(mapper).toHaveBeenCalledTimes(1);
+    });
+
+    it("should memoize the data", () => {
+      const mapper = vi.fn((x: number, num: number) => rd.of((x + 1) * num));
+      const { result, rerender } = renderHook(
+        (num) => rd.useMemoMapMonadic(rd.of(1), mapper, [num]),
+        { initialProps: 10 }
+      );
+      expect(result.current).toEqual(rd.of(20));
+      rerender(10);
+      expect(result.current).toEqual(rd.of(20));
+      rerender(20);
+      expect(result.current).toEqual(rd.of(40));
+      expect(mapper).toHaveBeenCalledTimes(3);
+    });
+  });
+
   describe("useDataMemo", () => {
     it("returns the same reference when dependencies do not change", () => {
       const initialValue = { data: 10 };
@@ -798,9 +824,9 @@ describe("RemoteData Utility", () => {
           rd.useMemo(
             input,
             (data) => rd.map(data, (data) => ({ result: data.data * 2 })),
-            [],
+            []
           ),
-        { initialProps: rd.of(initialValue) },
+        { initialProps: rd.of(initialValue) }
       );
 
       const firstResult = result.current;
@@ -819,9 +845,9 @@ describe("RemoteData Utility", () => {
           rd.useMemo(
             input,
             (data) => rd.map(data, (data) => ({ result: data.data * 2 })),
-            [],
+            []
           ),
-        { initialProps: rd.of(initialData) },
+        { initialProps: rd.of(initialData) }
       );
 
       const firstResult = result.current;
@@ -843,9 +869,9 @@ describe("RemoteData Utility", () => {
               rd.map(data, (input) => ({
                 complex: { value: input },
               })),
-            [],
+            []
           ),
-        { initialProps: data },
+        { initialProps: data }
       );
 
       const firstResult = result.current;
@@ -867,7 +893,7 @@ describe("RemoteData Utility", () => {
         (data) => rd.useLastWithPlaceholder(data),
         {
           initialProps: data,
-        },
+        }
       );
       expect(result.current).toEqual(rd.ofPending());
 
@@ -904,21 +930,21 @@ describe("RemoteData Utility", () => {
     it("should convert absent maybe to error", () => {
       const x = maybe.ofAbsent();
       expect(rd.fromMaybe(x)).toEqual(
-        rd.ofError(new Error("Expected value to be present")),
+        rd.ofError(new Error("Expected value to be present"))
       );
     });
 
     it("should convert absent maybe to error with custom message", () => {
       const x = maybe.ofAbsent();
       expect(rd.fromMaybe(x, new Error("Custom message"))).toEqual(
-        rd.ofError(new Error("Custom message")),
+        rd.ofError(new Error("Custom message"))
       );
     });
 
     it("should convert absent maybe to error with custom message function", () => {
       const x = maybe.ofAbsent();
       expect(rd.fromMaybe(x, () => new Error("Custom message"))).toEqual(
-        rd.ofError(new Error("Custom message")),
+        rd.ofError(new Error("Custom message"))
       );
     });
   });
