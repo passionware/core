@@ -66,10 +66,11 @@ jobs:
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
+      - run: npm install -g npm@latest
       - run: npm i @rollup/rollup-linux-x64-gnu
       - run: npm run build
       - run: npm run changeset -- version --snapshot dev
       - name: Publish packages
         run: npm run changeset -- publish --tag dev
         env:
-          NPM_CONFIG_PROVENANCE: false
+          NPM_CONFIG_PROVENANCE: true
