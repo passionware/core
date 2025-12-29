@@ -76,4 +76,4 @@ jobs:
       - name: Publish packages
         run: npm run changeset -- publish --tag dev
         env:
-          NPM_CONFIG_PROVENANCE: true
+          NPM_CONFIG_PROVENANCE: false

@@ -1,5 +1,5 @@
 {
-  "name": "passionware-core",
+  "name": "@passionware/passionware-core",
   "private": true,
   "scripts": {
     "build": "turbo build",
@@ -44,7 +44,7 @@
     "@changesets/cli": "^2.27.1"
   },
   "repository": {
-    "url": "https://github.com/passionware/core.git"
+    "url": "git+https://github.com/passionware/core.git"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
@@ -54,5 +54,15 @@
       "react": "19.0.0",
       "react-dom": "19.0.0"
     }
-  }
+  },
+  "version": "1.0.0",
+  "description": "Systematic, repetitive decisions that are direct implementations of our values. They directly affect how our code looks.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/passionware/core/issues"
+  },
+  "homepage": "https://github.com/passionware/core#readme"
 }
