@@ -33,9 +33,9 @@
     "@types/lodash": "^4.17.15"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
-  "packageManager": "npm@10.9.4",
+  "packageManager": "npm@11.7.0",
   "workspaces": [
     "apps/workshop",
     "packages/*"
