@@ -10,6 +10,9 @@ on:
       - main
       - develop--*
 
+permissions:
+  id-token: write
+
 jobs:
   setup_dependencies:
     runs-on: ubuntu-latest
