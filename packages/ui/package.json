@@ -2,6 +2,9 @@
   "name": "@passionware/ui",
   "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "url": "https://github.com/passionware/core.git"
+  },
   "exports": {
     "./button": "./src/Button/index.ts",
     "./dialog": "./src/Dialog/index.ts",

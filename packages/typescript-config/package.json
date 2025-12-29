@@ -2,6 +2,9 @@
   "name": "@passionware/typescript-config",
   "version": "0.0.0",
   "license": "MIT",
+  "repository": {
+    "url": "https://github.com/passionware/core.git"
+  },
   "publishConfig": {
     "access": "public"
   },

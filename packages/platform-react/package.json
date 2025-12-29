@@ -7,6 +7,9 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "url": "https://github.com/passionware/core.git"
+  },
   "scripts": {
     "lint": "echo 'Add lint script here'",
     "test": "vitest run",

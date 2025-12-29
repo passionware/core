@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "type": "module",
   "main": "src/icons.tsx",
+  "repository": {
+    "url": "https://github.com/passionware/core.git"
+  },
   "scripts": {},
   "dependencies": {},
   "exports": {

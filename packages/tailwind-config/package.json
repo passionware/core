@@ -2,6 +2,9 @@
   "name": "@passionware/tailwind-config",
   "version": "0.0.0",
   "main": "./src/index.ts",
+  "repository": {
+    "url": "https://github.com/passionware/core.git"
+  },
   "scripts": {
     "lint": "echo 'Add lint script here'",
     "ts": "tsc --noEmit"
