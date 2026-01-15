@@ -1,4 +1,4 @@
-export type IdleMutationData = { status: "idle" };
+export type IdleMutationData = { status: "idle"; isBlocked: boolean };
 export type PendingMutationData<Request> = {
   status: "pending";
   request: Request;

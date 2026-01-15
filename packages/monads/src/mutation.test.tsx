@@ -29,7 +29,12 @@ describe("Mutation Utilities", () => {
 
     it("ofIdle creates an idle state", () => {
       const mutation = mt.ofIdle();
-      expect(mutation).toEqual({ status: "idle" });
+      expect(mutation).toEqual({ status: "idle", isBlocked: false });
+    });
+
+    it("ofIdle creates a blocked idle state when passed true", () => {
+      const mutation = mt.ofIdle(true);
+      expect(mutation).toEqual({ status: "idle", isBlocked: true });
     });
 
     it("ofPending creates a pending state", () => {
@@ -65,11 +70,41 @@ describe("Mutation Utilities", () => {
 
     it("isExecutable identifies non-pending mutations as executable", () => {
       const idleMutation = mt.ofIdle();
+      const blockedIdleMutation = mt.ofIdle(true);
       const errorMutation = mt.ofError({}, new Error("error"));
       const successMutation = mt.ofSuccess({}, {});
+      const pendingMutation = mt.ofPending({});
       expect(mt.isExecutable(idleMutation)).toBeTruthy();
       expect(mt.isExecutable(errorMutation)).toBeTruthy();
       expect(mt.isExecutable(successMutation)).toBeTruthy();
+      expect(mt.isExecutable(pendingMutation)).toBeFalsy();
+      expect(mt.isExecutable(blockedIdleMutation)).toBeFalsy();
+    });
+
+    it("isBlocked correctly identifies blocked idle mutations", () => {
+      const blockedIdle = mt.ofIdle(true);
+      const unblockedIdle = mt.ofIdle(false);
+      const pendingMutation = mt.ofPending({});
+      const errorMutation = mt.ofError({}, new Error("error"));
+      const successMutation = mt.ofSuccess({}, {});
+
+      expect(mt.isBlocked(blockedIdle)).toBeTruthy();
+      expect(mt.isBlocked(unblockedIdle)).toBeFalsy();
+      expect(mt.isBlocked(pendingMutation)).toBeFalsy();
+      expect(mt.isBlocked(errorMutation)).toBeFalsy();
+      expect(mt.isBlocked(successMutation)).toBeFalsy();
+    });
+
+    it("isStarted correctly identifies non-idle mutations", () => {
+      const idleMutation = mt.ofIdle();
+      const pendingMutation = mt.ofPending({});
+      const errorMutation = mt.ofError({}, new Error("error"));
+      const successMutation = mt.ofSuccess({}, {});
+
+      expect(mt.isStarted(idleMutation)).toBeFalsy();
+      expect(mt.isStarted(pendingMutation)).toBeTruthy();
+      expect(mt.isStarted(errorMutation)).toBeTruthy();
+      expect(mt.isStarted(successMutation)).toBeTruthy();
     });
   });
 
@@ -86,6 +121,32 @@ describe("Mutation Utilities", () => {
       const successMutation = mt.ofSuccess(request, {});
       const result = mt.when(successMutation, (req) => req.user !== "admin");
       expect(result).toEqual(mt.ofIdle());
+    });
+
+    it("exclusiveWhen returns the mutation when the filter condition is true", () => {
+      const request = { user: "admin" };
+      const successMutation = mt.ofSuccess(request, {});
+      const result = mt.blockWhen(
+        successMutation,
+        (req) => req.user === "admin"
+      );
+      expect(result).toBe(successMutation);
+    });
+
+    it("exclusiveWhen returns blocked idle mutation when the filter condition is false", () => {
+      const request = { user: "admin" };
+      const successMutation = mt.ofSuccess(request, {});
+      const result = mt.blockWhen(
+        successMutation,
+        (req) => req.user !== "admin"
+      );
+      expect(result).toEqual(mt.ofIdle(true));
+    });
+
+    it("exclusiveWhen returns the original idle mutation unchanged", () => {
+      const idleMutation = mt.ofIdle();
+      const result = mt.blockWhen(idleMutation, () => true);
+      expect(result).toBe(idleMutation);
     });
   });
 
@@ -105,7 +166,7 @@ describe("Mutation Utilities", () => {
     const successMutation = mt.ofSuccess(request, {});
     const result = mt.mapError(
       successMutation,
-      () => new Error("mapped error"),
+      () => new Error("mapped error")
     );
     expect(result).toBe(successMutation);
   });
@@ -114,7 +175,7 @@ describe("Mutation Utilities", () => {
     const request = { user: "admin" };
     const errorMutation = mt.ofError(request, new Error("error"));
     const result = mt.mapErrorMonadic(errorMutation, () =>
-      mt.ofError(request, new Error("mapped error")),
+      mt.ofError(request, new Error("mapped error"))
     );
     expect(result).toEqual({
       status: "error",
@@ -127,9 +188,43 @@ describe("Mutation Utilities", () => {
     const request = { user: "admin" };
     const successMutation = mt.ofSuccess(request, {});
     const result = mt.mapErrorMonadic(successMutation, () =>
-      mt.ofError(request, new Error("mapped error")),
+      mt.ofError(request, new Error("mapped error"))
     );
     expect(result).toBe(successMutation);
+  });
+
+  describe("Getter Functions", () => {
+    it("getRequest returns the request for non-idle mutations", () => {
+      const request = { user: "admin" };
+      const pendingMutation = mt.ofPending(request);
+      const errorMutation = mt.ofError(request, new Error("error"));
+      const successMutation = mt.ofSuccess(request, {});
+
+      expect(mt.getRequest(pendingMutation)).toBe(request);
+      expect(mt.getRequest(errorMutation)).toBe(request);
+      expect(mt.getRequest(successMutation)).toBe(request);
+    });
+
+    it("getRequest returns null for idle mutations", () => {
+      const idleMutation = mt.ofIdle();
+      expect(mt.getRequest(idleMutation)).toBeNull();
+    });
+
+    it("getResponse returns the response for success mutations", () => {
+      const response = { data: "result" };
+      const successMutation = mt.ofSuccess({}, response);
+      expect(mt.getResponse(successMutation)).toBe(response);
+    });
+
+    it("getResponse returns null for non-success mutations", () => {
+      const idleMutation = mt.ofIdle();
+      const pendingMutation = mt.ofPending({});
+      const errorMutation = mt.ofError({}, new Error("error"));
+
+      expect(mt.getResponse(idleMutation)).toBeNull();
+      expect(mt.getResponse(pendingMutation)).toBeNull();
+      expect(mt.getResponse(errorMutation)).toBeNull();
+    });
   });
 
   describe("journey", () => {
@@ -149,18 +244,109 @@ describe("Mutation Utilities", () => {
       expect(jo(mt.ofError(req, new Error("err")))).toEqual("Error/err/req");
       expect(jo(mt.ofSuccess(req, res))).toEqual("Success/123");
     });
+
+    it("supports static values for each state", () => {
+      const jo = (m: MutationData<string, number>) =>
+        mt
+          .journey(m)
+          .initially("Initial")
+          .during("Loading...")
+          .catch(() => "Error occurred")
+          .done("Success!");
+
+      expect(jo(mt.ofIdle())).toEqual("Initial");
+      expect(jo(mt.ofPending("test"))).toEqual("Loading...");
+      expect(jo(mt.ofError("test", new Error("err")))).toEqual(
+        "Error occurred"
+      );
+      expect(jo(mt.ofSuccess("test", 42))).toEqual("Success!");
+    });
+
+    it("supports mixed static and dynamic values", () => {
+      const jo = (m: MutationData<string, number>) =>
+        mt
+          .journey(m)
+          .initially("Ready")
+          .during(({ request }) => `Processing ${request}...`)
+          .catch(() => "Failed")
+          .done((success) => success.response * 2);
+
+      expect(jo(mt.ofIdle())).toEqual("Ready");
+      expect(jo(mt.ofPending("data"))).toEqual("Processing data...");
+      expect(jo(mt.ofError("data", new Error("err")))).toEqual("Failed");
+      expect(jo(mt.ofSuccess("data", 21))).toEqual(42);
+    });
+
+    it("initially callback can access isBlocked property", () => {
+      const jo = (m: MutationData<string, number>) =>
+        mt
+          .journey(m)
+          .initially((idle) => (idle.isBlocked ? "Blocked" : "Ready"))
+          .during("Loading...")
+          .catch(() => "Error")
+          .done("Success");
+
+      expect(jo(mt.ofIdle(false))).toEqual("Ready");
+      expect(jo(mt.ofIdle(true))).toEqual("Blocked");
+      expect(jo(mt.ofPending("data"))).toEqual("Loading...");
+      expect(jo(mt.ofError("data", new Error("err")))).toEqual("Error");
+      expect(jo(mt.ofSuccess("data", 42))).toEqual("Success");
+    });
   });
 
   describe("convert", () => {
-    it("fromRemoteData", () => {
-      const remoteData = rd.of(2);
-      const result = mt.fromRemoteData(remoteData);
-      expect(result).toEqual(mt.ofSuccess(void 0, 2));
+    describe("fromRemoteData", () => {
+      it("converts idle remote data to idle mutation", () => {
+        const remoteData = rd.ofIdle();
+        const result = mt.fromRemoteData(remoteData);
+        expect(result).toEqual(mt.ofIdle(false));
+      });
+
+      it("converts pending remote data to pending mutation", () => {
+        const remoteData = rd.ofPending();
+        const result = mt.fromRemoteData(remoteData);
+        expect(result).toEqual(mt.ofPending(void 0));
+      });
+
+      it("converts success remote data to success mutation", () => {
+        const remoteData = rd.of(42);
+        const result = mt.fromRemoteData(remoteData);
+        expect(result).toEqual(mt.ofSuccess(void 0, 42));
+      });
+
+      it("converts error remote data to error mutation", () => {
+        const error = new Error("test error");
+        const remoteData = rd.ofError(error);
+        const result = mt.fromRemoteData(remoteData);
+        expect(result).toEqual(mt.ofError(void 0, error));
+      });
     });
-    it("toRemoteData", () => {
-      const mutation = mt.ofSuccess("whatever", 2);
-      const result = mt.toRemoteData(mutation);
-      expect(result).toEqual(rd.of(2));
+
+    describe("toRemoteData", () => {
+      it("converts idle mutation to idle remote data", () => {
+        const mutation = mt.ofIdle();
+        const result = mt.toRemoteData(mutation);
+        expect(result).toEqual(rd.ofIdle());
+      });
+
+      it("converts pending mutation to pending remote data", () => {
+        const mutation = mt.ofPending("request");
+        const result = mt.toRemoteData(mutation);
+        expect(result).toEqual(rd.ofPending());
+      });
+
+      it("converts success mutation to success remote data", () => {
+        const mutation = mt.ofSuccess("request", 42);
+        const result = mt.toRemoteData(mutation);
+        expect(result).toEqual(rd.of(42));
+      });
+
+      it("converts error mutation to error remote data", () => {
+        const error = new Error("test error");
+        const mutation = mt.ofError("request", error);
+        const result = mt.toRemoteData(mutation);
+        expect(result).toEqual(rd.ofError(error));
+      });
     });
   });
 });

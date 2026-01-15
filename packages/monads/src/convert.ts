@@ -2,11 +2,11 @@ import { MutationData } from "./mutation.types";
 import { RemoteData } from "./remoteData.types";
 
 export function remoteDataToMutationData<Response>(
-  remoteData: RemoteData<Response>,
+  remoteData: RemoteData<Response>
 ): MutationData<void, Response> {
   switch (remoteData.status) {
     case "idle":
-      return { status: "idle" };
+      return { status: "idle", isBlocked: false };
     case "pending":
       return { status: "pending", request: void 0 };
     case "success":
@@ -25,7 +25,7 @@ export function remoteDataToMutationData<Response>(
 }
 
 export function mutationDataToRemoteData<Request, Response>(
-  mutationData: MutationData<Request, Response>,
+  mutationData: MutationData<Request, Response>
 ): RemoteData<Response> {
   switch (mutationData.status) {
     case "idle":
