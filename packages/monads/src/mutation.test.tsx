@@ -123,41 +123,41 @@ describe("Mutation Utilities", () => {
       expect(result).toEqual(mt.ofIdle());
     });
 
-    it("blockWhen returns the mutation when the filter condition is true", () => {
+    it("blockUnless returns the mutation when the filter condition is true", () => {
       const request = { user: "admin" };
       const pendingMutation = mt.ofPending(request);
-      const result = mt.blockWhen(
+      const result = mt.blockUnless(
         pendingMutation,
         (req) => req.user === "admin"
       );
       expect(result).toBe(pendingMutation);
     });
 
-    it("blockWhen returns blocked idle mutation when the filter condition is false for pending mutations", () => {
+    it("blockUnless returns blocked idle mutation when the filter condition is false for pending mutations", () => {
       const request = { user: "admin" };
       const pendingMutation = mt.ofPending(request);
-      const result = mt.blockWhen(
+      const result = mt.blockUnless(
         pendingMutation,
         (req) => req.user !== "admin"
       );
       expect(result).toEqual(mt.ofIdle(true));
     });
 
-    it("blockWhen converts non-pending mutations to unblocked idle when filter fails", () => {
+    it("blockUnless converts non-pending mutations to unblocked idle when filter fails", () => {
       const request = { user: "admin" };
       const successMutation = mt.ofSuccess(request, {});
       const errorMutation = mt.ofError(request, new Error("error"));
 
-      const successResult = mt.blockWhen(successMutation, (req) => req.user !== "admin");
-      const errorResult = mt.blockWhen(errorMutation, (req) => req.user !== "admin");
+      const successResult = mt.blockUnless(successMutation, (req) => req.user !== "admin");
+      const errorResult = mt.blockUnless(errorMutation, (req) => req.user !== "admin");
 
       expect(successResult).toEqual(mt.ofIdle(false));
       expect(errorResult).toEqual(mt.ofIdle(false));
     });
 
-    it("blockWhen returns the original idle mutation unchanged", () => {
+    it("blockUnless returns the original idle mutation unchanged", () => {
       const idleMutation = mt.ofIdle();
-      const result = mt.blockWhen(idleMutation, () => true);
+      const result = mt.blockUnless(idleMutation, () => true);
       expect(result).toBe(idleMutation);
     });
   });

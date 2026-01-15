@@ -79,7 +79,7 @@ export const mt = {
   /**
    * Same as when, but blocks the mutation if the filter is false
    */
-  blockWhen: <Request, Response>(
+  blockUnless: <Request, Response>(
     mutation: MutationData<Request, Response>,
     filter: (request: Request) => boolean
   ): MutationData<Request, Response> => {
