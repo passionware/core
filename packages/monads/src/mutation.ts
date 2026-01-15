@@ -84,7 +84,9 @@ export const mt = {
     filter: (request: Request) => boolean
   ): MutationData<Request, Response> => {
     if (mutation.status === "idle") return mutation;
-    return filter(mutation.request) ? mutation : mt.ofIdle(true);
+    return filter(mutation.request)
+      ? mutation
+      : mt.ofIdle(mt.isInProgress(mutation));
   },
   journey: <Request, Response>(mutation: MutationData<Request, Response>) => ({
     initially: <A>(
