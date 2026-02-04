@@ -331,6 +331,23 @@ describe("RemoteData Utility", () => {
     });
   });
 
+  describe("idleToNull Function", () => {
+    it("should return null if the remoteData is idle", () => {
+      expect(rd.idleToNull(rd.ofIdle())).toEqual(rd.of(null));
+    });
+    it("should return the remoteData if the remoteData is pending", () => {
+      expect(rd.idleToNull(rd.ofPending())).toEqual(rd.ofPending());
+    });
+    it("should return the remoteData if the remoteData is error", () => {
+      expect(rd.idleToNull(rd.ofError(new Error("Test error")))).toEqual(
+        rd.ofError(new Error("Test error"))
+      );
+    });
+    it("should return the remoteData if the remoteData is success", () => {
+      expect(rd.idleToNull(rd.of(10))).toEqual(rd.of(10));
+    });
+  });
+
   describe("combineAll", () => {
     it("returns an empty success when the array is empty", () => {
       expect(rd.combineAll([])).toEqual(rd.of([]));

@@ -732,6 +732,15 @@ export const rd = {
       results as T[number] extends RemoteData<infer U> ? U[] : never[]
     );
   },
+  /**
+   * Useful when making rd.combine() but some fields may be idle and we shuold not block the result with idle or throw an error
+   */
+  idleToNull: <T>(remoteData: RemoteData<T>): RemoteData<T | null> => {
+    if (rd.isIdle(remoteData)) {
+      return rd.of(null);
+    }
+    return remoteData;
+  },
   fromMutation: mutationDataToRemoteData,
   toMutation: remoteDataToMutationData,
 };
