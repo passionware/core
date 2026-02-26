@@ -8,7 +8,7 @@ describe("Mutation Utilities", () => {
     it("ofSuccess creates a success state", () => {
       const request = { payload: "test" };
       const response = { data: "result" };
-      const mutation = mt.ofSuccess(request, response);
+      const mutation = mt.of(request, response);
       expect(mutation).toEqual({
         status: "success",
         request,
@@ -59,7 +59,7 @@ describe("Mutation Utilities", () => {
     });
 
     it("isSuccess correctly identifies success mutations", () => {
-      const successMutation = mt.ofSuccess({}, {});
+      const successMutation = mt.of({}, {});
       expect(mt.isSuccess(successMutation)).toBeTruthy();
     });
 
@@ -72,7 +72,7 @@ describe("Mutation Utilities", () => {
       const idleMutation = mt.ofIdle();
       const blockedIdleMutation = mt.ofIdle(true);
       const errorMutation = mt.ofError({}, new Error("error"));
-      const successMutation = mt.ofSuccess({}, {});
+      const successMutation = mt.of({}, {});
       const pendingMutation = mt.ofPending({});
       expect(mt.isExecutable(idleMutation)).toBeTruthy();
       expect(mt.isExecutable(errorMutation)).toBeTruthy();
@@ -86,7 +86,7 @@ describe("Mutation Utilities", () => {
       const unblockedIdle = mt.ofIdle(false);
       const pendingMutation = mt.ofPending({});
       const errorMutation = mt.ofError({}, new Error("error"));
-      const successMutation = mt.ofSuccess({}, {});
+      const successMutation = mt.of({}, {});
 
       expect(mt.isBlocked(blockedIdle)).toBeTruthy();
       expect(mt.isBlocked(unblockedIdle)).toBeFalsy();
@@ -99,7 +99,7 @@ describe("Mutation Utilities", () => {
       const idleMutation = mt.ofIdle();
       const pendingMutation = mt.ofPending({});
       const errorMutation = mt.ofError({}, new Error("error"));
-      const successMutation = mt.ofSuccess({}, {});
+      const successMutation = mt.of({}, {});
 
       expect(mt.isStarted(idleMutation)).toBeFalsy();
       expect(mt.isStarted(pendingMutation)).toBeTruthy();
@@ -111,14 +111,14 @@ describe("Mutation Utilities", () => {
   describe("Utility Functions", () => {
     it("when returns the mutation when the filter condition is true", () => {
       const request = { user: "admin" };
-      const successMutation = mt.ofSuccess(request, {});
+      const successMutation = mt.of(request, {});
       const result = mt.when(successMutation, (req) => req.user === "admin");
       expect(result).toBe(successMutation);
     });
 
     it("when returns idle mutation when the filter condition is false", () => {
       const request = { user: "admin" };
-      const successMutation = mt.ofSuccess(request, {});
+      const successMutation = mt.of(request, {});
       const result = mt.when(successMutation, (req) => req.user !== "admin");
       expect(result).toEqual(mt.ofIdle());
     });
@@ -145,11 +145,17 @@ describe("Mutation Utilities", () => {
 
     it("blockUnless converts non-pending mutations to unblocked idle when filter fails", () => {
       const request = { user: "admin" };
-      const successMutation = mt.ofSuccess(request, {});
+      const successMutation = mt.of(request, {});
       const errorMutation = mt.ofError(request, new Error("error"));
 
-      const successResult = mt.blockUnless(successMutation, (req) => req.user !== "admin");
-      const errorResult = mt.blockUnless(errorMutation, (req) => req.user !== "admin");
+      const successResult = mt.blockUnless(
+        successMutation,
+        (req) => req.user !== "admin"
+      );
+      const errorResult = mt.blockUnless(
+        errorMutation,
+        (req) => req.user !== "admin"
+      );
 
       expect(successResult).toEqual(mt.ofIdle(false));
       expect(errorResult).toEqual(mt.ofIdle(false));
@@ -175,7 +181,7 @@ describe("Mutation Utilities", () => {
 
   it("mapError does not map the error if the mutation is not in error state", () => {
     const request = { user: "admin" };
-    const successMutation = mt.ofSuccess(request, {});
+    const successMutation = mt.of(request, {});
     const result = mt.mapError(
       successMutation,
       () => new Error("mapped error")
@@ -198,11 +204,118 @@ describe("Mutation Utilities", () => {
 
   it("mapErrorMonadic returns the original mutation if the mutation is not in error state", () => {
     const request = { user: "admin" };
-    const successMutation = mt.ofSuccess(request, {});
+    const successMutation = mt.of(request, {});
     const result = mt.mapErrorMonadic(successMutation, () =>
       mt.ofError(request, new Error("mapped error"))
     );
     expect(result).toBe(successMutation);
+  });
+
+  describe("mapRequest", () => {
+    it("maps the request for non-idle mutations", () => {
+      const request = { user: "admin" };
+      const successMutation = mt.of(request, {});
+      const result = mt.mapRequest(successMutation, (req) => ({
+        ...req,
+        user: "admin",
+      }));
+      expect(result).toEqual(mt.of({ ...request, user: "admin" }, {}));
+    });
+
+    it("maps the request for pending mutations", () => {
+      const request = { user: "admin" };
+      const pendingMutation = mt.ofPending(request);
+      const result = mt.mapRequest(pendingMutation, (req) => ({
+        ...req,
+        user: "admin",
+      }));
+      expect(result).toEqual(mt.ofPending({ ...request, user: "admin" }));
+    });
+
+    it("maps the request for error mutations", () => {
+      const request = { user: "admin" };
+      const error = new Error("error");
+      const errorMutation = mt.ofError(request, error);
+      const result = mt.mapRequest(errorMutation, (req) => ({
+        ...req,
+        user: "admin",
+      }));
+      expect(result).toEqual(mt.ofError({ ...request, user: "admin" }, error));
+    });
+    it("maps the request for success mutations", () => {
+      const request = { user: "admin" };
+      const successMutation = mt.of(request, {});
+      const result = mt.mapRequest(successMutation, (req) => ({
+        ...req,
+        user: "admin",
+      }));
+      expect(result).toEqual(mt.of({ ...request, user: "admin" }, {}));
+    });
+  });
+
+  describe("mapRequestMonadic", () => {
+    it("maps the request for non-idle mutations", () => {
+      const request = { user: "admin" };
+      const successMutation = mt.of(request, {});
+      const result = mt.mapRequestMonadic(successMutation, (m) =>
+        mt.of(
+          {
+            ...m.request,
+            user: "admin",
+          },
+          { result: 123 }
+        )
+      );
+      expect(result).toEqual(
+        mt.of({ ...request, user: "admin" }, { result: 123 })
+      );
+    });
+
+    it("maps the request for pending mutations", () => {
+      const request = { user: "admin" };
+      const pendingMutation = mt.ofPending(request);
+      const result = mt.mapRequestMonadic(pendingMutation, (m) =>
+        mt.ofPending({
+          ...m.request,
+          user: "admin",
+        })
+      );
+      expect(result).toEqual(mt.ofPending({ ...request, user: "admin" }));
+    });
+
+    it("maps the request for error mutations", () => {
+      const request = { user: "admin" };
+      const error = new Error("error");
+      const errorMutation = mt.ofError(request, error);
+      const result = mt.mapRequestMonadic(errorMutation, (m) =>
+        mt.ofError(
+          {
+            ...m.request,
+            user: "admin",
+          },
+          new Error("mapped error")
+        )
+      );
+      expect(result).toEqual(
+        mt.ofError({ ...request, user: "admin" }, new Error("mapped error"))
+      );
+    });
+    it("maps the request for success mutations", () => {
+      const request = { user: "admin" };
+      const successMutation = mt.of(request, {});
+      const result = mt.mapRequestMonadic(successMutation, (m) =>
+        mt.of(
+          {
+            ...m.request,
+            user: "admin",
+          },
+          { result: 123 }
+        )
+      );
+      expect(result).toEqual(
+        mt.of({ ...request, user: "admin" }, { result: 123 })
+      );
+    });
   });
 
   describe("Getter Functions", () => {
@@ -210,7 +323,7 @@ describe("Mutation Utilities", () => {
       const request = { user: "admin" };
       const pendingMutation = mt.ofPending(request);
       const errorMutation = mt.ofError(request, new Error("error"));
-      const successMutation = mt.ofSuccess(request, {});
+      const successMutation = mt.of(request, {});
 
       expect(mt.getRequest(pendingMutation)).toBe(request);
       expect(mt.getRequest(errorMutation)).toBe(request);
@@ -224,7 +337,7 @@ describe("Mutation Utilities", () => {
 
     it("getResponse returns the response for success mutations", () => {
       const response = { data: "result" };
-      const successMutation = mt.ofSuccess({}, response);
+      const successMutation = mt.of({}, response);
       expect(mt.getResponse(successMutation)).toBe(response);
     });
 
@@ -254,7 +367,7 @@ describe("Mutation Utilities", () => {
       expect(jo(mt.ofIdle())).toEqual(999);
       expect(jo(mt.ofPending(req))).toEqual("Pending req");
       expect(jo(mt.ofError(req, new Error("err")))).toEqual("Error/err/req");
-      expect(jo(mt.ofSuccess(req, res))).toEqual("Success/123");
+      expect(jo(mt.of(req, res))).toEqual("Success/123");
     });
 
     it("supports static values for each state", () => {
@@ -271,7 +384,7 @@ describe("Mutation Utilities", () => {
       expect(jo(mt.ofError("test", new Error("err")))).toEqual(
         "Error occurred"
       );
-      expect(jo(mt.ofSuccess("test", 42))).toEqual("Success!");
+      expect(jo(mt.of("test", 42))).toEqual("Success!");
     });
 
     it("supports mixed static and dynamic values", () => {
@@ -286,7 +399,7 @@ describe("Mutation Utilities", () => {
       expect(jo(mt.ofIdle())).toEqual("Ready");
       expect(jo(mt.ofPending("data"))).toEqual("Processing data...");
       expect(jo(mt.ofError("data", new Error("err")))).toEqual("Failed");
-      expect(jo(mt.ofSuccess("data", 21))).toEqual(42);
+      expect(jo(mt.of("data", 21))).toEqual(42);
     });
 
     it("initially callback can access isBlocked property", () => {
@@ -302,7 +415,7 @@ describe("Mutation Utilities", () => {
       expect(jo(mt.ofIdle(true))).toEqual("Blocked");
       expect(jo(mt.ofPending("data"))).toEqual("Loading...");
       expect(jo(mt.ofError("data", new Error("err")))).toEqual("Error");
-      expect(jo(mt.ofSuccess("data", 42))).toEqual("Success");
+      expect(jo(mt.of("data", 42))).toEqual("Success");
     });
   });
 
@@ -323,7 +436,7 @@ describe("Mutation Utilities", () => {
       it("converts success remote data to success mutation", () => {
         const remoteData = rd.of(42);
         const result = mt.fromRemoteData(remoteData);
-        expect(result).toEqual(mt.ofSuccess(void 0, 42));
+        expect(result).toEqual(mt.of(void 0, 42));
       });
 
       it("converts error remote data to error mutation", () => {
@@ -348,7 +461,7 @@ describe("Mutation Utilities", () => {
       });
 
       it("converts success mutation to success remote data", () => {
-        const mutation = mt.ofSuccess("request", 42);
+        const mutation = mt.of("request", 42);
         const result = mt.toRemoteData(mutation);
         expect(result).toEqual(rd.of(42));
       });
