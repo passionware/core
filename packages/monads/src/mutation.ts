@@ -78,10 +78,10 @@ export const mt = {
     fn: (error: Error) => MutationData<Request, Response>
   ): MutationData<Request, Response> =>
     mt.isInError(mutation) ? fn(mutation.error) : mutation,
-  mapRequest: <Request, Response>(
+  mapRequest: <Request, Response, MappedRequest>(
     mutation: MutationData<Request, Response>,
-    fn: (request: Request) => Request
-  ): MutationData<Request, Response> => {
+    fn: (request: Request) => MappedRequest
+  ): MutationData<MappedRequest, Response> => {
     switch (mutation.status) {
       case "idle":
         return mutation;
@@ -93,15 +93,15 @@ export const mt = {
         return mt.ofError(fn(mutation.request), mutation.error);
     }
   },
-  mapRequestMonadic: <Request, Response>(
+  mapRequestMonadic: <Request, Response, MappedRequest>(
     mutation: MutationData<Request, Response>,
     fn: (
       request:
         | PendingMutationData<Request>
         | SuccessMutationData<Request, Response>
         | ErrorMutationData<Request>
-    ) => MutationData<Request, Response>
-  ): MutationData<Request, Response> => {
+    ) => MutationData<MappedRequest, Response>
+  ): MutationData<MappedRequest, Response> => {
     switch (mutation.status) {
       case "idle":
         return mutation;
@@ -111,10 +111,10 @@ export const mt = {
         return fn(mutation);
     }
   },
-  mapResponse: <Request, Response>(
+  mapResponse: <Request, Response, MappedResponse>(
     mutation: MutationData<Request, Response>,
-    fn: (response: Response) => Response
-  ): MutationData<Request, Response> => {
+    fn: (response: Response) => MappedResponse
+  ): MutationData<Request, MappedResponse> => {
     switch (mutation.status) {
       case "idle":
         return mutation;
@@ -126,10 +126,10 @@ export const mt = {
         return mutation;
     }
   },
-  mapResponseMonadic: <Request, Response>(
+  mapResponseMonadic: <Request, Response, MappedResponse>(
     mutation: MutationData<Request, Response>,
-    fn: (response: Response) => MutationData<Request, Response>
-  ): MutationData<Request, Response> => {
+    fn: (response: Response) => MutationData<Request, MappedResponse>
+  ): MutationData<Request, MappedResponse> => {
     switch (mutation.status) {
       case "idle":
         return mutation;
