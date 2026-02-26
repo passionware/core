@@ -277,10 +277,12 @@ describe("Mutation Utilities", () => {
       const result = mt.mapRequestMonadic(pendingMutation, (m) =>
         mt.ofPending({
           ...m.request,
-          user: "admin",
+          user: "pending-admin",
         })
       );
-      expect(result).toEqual(mt.ofPending({ ...request, user: "admin" }));
+      expect(result).toEqual(
+        mt.ofPending({ ...request, user: "pending-admin" })
+      );
     });
 
     it("maps the request for error mutations", () => {
@@ -291,13 +293,16 @@ describe("Mutation Utilities", () => {
         mt.ofError(
           {
             ...m.request,
-            user: "admin",
+            user: "error-admin",
           },
           new Error("mapped error")
         )
       );
       expect(result).toEqual(
-        mt.ofError({ ...request, user: "admin" }, new Error("mapped error"))
+        mt.ofError(
+          { ...request, user: "error-admin" },
+          new Error("mapped error")
+        )
       );
     });
     it("maps the request for success mutations", () => {
@@ -307,13 +312,13 @@ describe("Mutation Utilities", () => {
         mt.of(
           {
             ...m.request,
-            user: "admin",
+            user: "success-admin",
           },
           { result: 123 }
         )
       );
       expect(result).toEqual(
-        mt.of({ ...request, user: "admin" }, { result: 123 })
+        mt.of({ ...request, user: "success-admin" }, { result: 123 })
       );
     });
   });
