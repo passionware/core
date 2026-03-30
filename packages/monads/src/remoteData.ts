@@ -10,6 +10,74 @@ import {
   RemoteDataSuccess,
 } from "./remoteData.types";
 
+const STABLE_IDLE: RemoteDataIdle = { status: "idle" };
+const STABLE_PENDING: RemoteDataPending = { status: "pending", isFetching: true };
+
+function shallowEqualUnknown(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) {
+    return true;
+  }
+  if (
+    typeof a !== "object" ||
+    a === null ||
+    typeof b !== "object" ||
+    b === null
+  ) {
+    return false;
+  }
+  const aObj = a as Record<string, unknown>;
+  const bObj = b as Record<string, unknown>;
+  const keysA = Object.keys(aObj);
+  const keysB = Object.keys(bObj);
+  if (keysA.length !== keysB.length) {
+    return false;
+  }
+  for (const k of keysA) {
+    if (
+      !Object.prototype.hasOwnProperty.call(bObj, k) ||
+      aObj[k] !== bObj[k]
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function remoteDataErrorsEqual(a: Error, b: Error): boolean {
+  return (
+    a === b || (a.name === b.name && a.message === b.message)
+  );
+}
+
+function stabilizeRemoteDataValue<T>(
+  prev: RemoteData<T> | undefined,
+  next: RemoteData<T>
+): RemoteData<T> {
+  switch (next.status) {
+    case "idle":
+      return STABLE_IDLE;
+    case "pending":
+      return STABLE_PENDING;
+    case "error":
+      if (
+        prev?.status === "error" &&
+        prev.isFetching === next.isFetching &&
+        remoteDataErrorsEqual(prev.error, next.error)
+      ) {
+        return prev;
+      }
+      return next;
+    case "success":
+      if (
+        prev?.status === "success" &&
+        shallowEqualUnknown(prev.data, next.data)
+      ) {
+        return prev;
+      }
+      return next;
+  }
+}
+
 export class MappingError extends Error {
   originalError: unknown;
 
@@ -626,6 +694,37 @@ export const rd = {
       (data, ...deps) => rd.mapMonadic(data, (data) => mapper(data, ...deps)),
       deps ?? []
     ),
+  /**
+   * Like {@link rd.combine}, but memoizes each input field so references stay
+   * stable when semantics match: idle/pending to canonical instances; success
+   * when `data` is shallow-equal; error when `name`, `message`, and
+   * `isFetching` match (or error reference is the same).
+   */
+  useCombine: <T extends Record<string, RemoteData<any>>>(
+    obj: T
+  ): RemoteData<{
+    [K in keyof T]: T[K] extends RemoteData<infer U> ? U : never;
+  }> => {
+    const stashRef = useRef<Partial<{ [K in keyof T]: T[K] }>>({});
+
+    const keys = Object.keys(obj) as (keyof T)[];
+    const stabilized = {} as {
+      [K in keyof T]: T[K];
+    };
+
+    for (const key of keys) {
+      const next = obj[key];
+      const prev = stashRef.current[key] as RemoteData<any> | undefined;
+      const stable = stabilizeRemoteDataValue(prev, next);
+      stashRef.current[key] = stable as (typeof stashRef.current)[typeof key];
+      stabilized[key] = stable as T[typeof key];
+    }
+
+    return useMemo(
+      () => rd.combine(stabilized as T),
+      keys.flatMap((k) => [k, stabilized[k]])
+    );
+  },
   combine<T extends Record<string, RemoteData<any>>>(
     obj: T
   ): RemoteData<{

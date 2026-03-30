@@ -331,6 +331,78 @@ describe("RemoteData Utility", () => {
     });
   });
 
+  describe("useCombine", () => {
+    it("keeps combined reference when success data is shallow-equal", () => {
+      const { result, rerender } = renderHook(
+        (props) => rd.useCombine({ a: props.a, b: props.b }),
+        { initialProps: { a: rd.of(1), b: rd.of(2) } }
+      );
+      const first = result.current;
+      rerender({ a: rd.of(1), b: rd.of(2) });
+      expect(result.current).toBe(first);
+    });
+
+    it("updates combined when shallow success data changes", () => {
+      const { result, rerender } = renderHook(
+        (props) => rd.useCombine({ a: props.a, b: props.b }),
+        { initialProps: { a: rd.of(1), b: rd.of(2) } }
+      );
+      const first = result.current;
+      rerender({ a: rd.of(1), b: rd.of(3) });
+      expect(result.current).not.toBe(first);
+      expect(result.current).toEqual(rd.combine({ a: rd.of(1), b: rd.of(3) }));
+    });
+
+    it("keeps combined reference when error name and message match", () => {
+      const { result, rerender } = renderHook(
+        (props) => rd.useCombine({ x: props.x }),
+        {
+          initialProps: {
+            x: rd.ofError(new Error("oops")),
+          },
+        }
+      );
+      const first = result.current;
+      const nextErr = new Error("oops");
+      rerender({ x: rd.ofError(nextErr) });
+      expect(result.current).toBe(first);
+    });
+
+    it("updates combined when error message changes", () => {
+      const { result, rerender } = renderHook(
+        (props) => rd.useCombine({ x: props.x }),
+        {
+          initialProps: {
+            x: rd.ofError(new Error("a")),
+          },
+        }
+      );
+      const first = result.current;
+      rerender({ x: rd.ofError(new Error("b")) });
+      expect(result.current).not.toBe(first);
+    });
+
+    it("keeps combined reference when idle inputs are new objects each render", () => {
+      const { result, rerender } = renderHook(() =>
+        rd.useCombine({ a: rd.ofIdle(), b: rd.ofIdle() })
+      );
+      const first = result.current;
+      rerender();
+      expect(result.current).toBe(first);
+      expect(result.current).toEqual(rd.ofIdle());
+    });
+
+    it("keeps combined reference when pending inputs are new objects each render", () => {
+      const { result, rerender } = renderHook(() =>
+        rd.useCombine({ a: rd.ofPending(), b: rd.of(1) })
+      );
+      const first = result.current;
+      rerender();
+      expect(result.current).toBe(first);
+      expect(result.current).toEqual(rd.ofPending());
+    });
+  });
+
   describe("idleToNull Function", () => {
     it("should return null if the remoteData is idle", () => {
       expect(rd.idleToNull(rd.ofIdle())).toEqual(rd.of(null));
