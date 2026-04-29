@@ -64,7 +64,6 @@ jobs:
         with:
           node-version: 22
           cache: "npm"
-          registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - run: npm i @rollup/rollup-linux-x64-gnu
       - run: npx turbo run build --filter='@passionware/*'
@@ -72,4 +71,6 @@ jobs:
       - name: Publish packages
         run: npm run changeset -- publish --tag dev
         env:
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org
+          NPM_CONFIG_ACCESS: public
           NPM_CONFIG_PROVENANCE: true
