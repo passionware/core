@@ -65,10 +65,15 @@ jobs:
           node-version: 22
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
+          always-auth: true
       - run: npm ci
       - run: npm i @rollup/rollup-linux-x64-gnu
       - run: npx turbo run build --filter='@passionware/*'
       - run: npm run changeset -- version --snapshot dev
+      - name: Verify npm auth
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish packages
         run: npm run changeset -- publish --tag dev
         env:
