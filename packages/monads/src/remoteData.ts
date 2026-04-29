@@ -844,12 +844,15 @@ export const rd = {
    * Useful pre-processor for `rd.combine()` when some fields are optional.
    *
    * `rd.combine()` does not support mixing `idle` and `success` states.
-   * Converting `idle` into `success(null)` makes the state explicit and allows
-   * combine to proceed without producing an error.
+   * Converting `idle` into `success(fallbackValue)` makes the state explicit and
+   * allows combine to proceed without producing an error.
    */
-  nullFromIdle: <T>(remoteData: RemoteData<T>): RemoteData<T | null> => {
+  switchIdle: <T, U>(
+    remoteData: RemoteData<T>,
+    fallbackRemoteData: RemoteData<U>
+  ): RemoteData<T | U> => {
     if (rd.isIdle(remoteData)) {
-      return rd.of(null);
+      return fallbackRemoteData;
     }
     return rd.mapMonadic(remoteData, (data) => rd.of(data));
   },

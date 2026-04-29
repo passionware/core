@@ -420,20 +420,35 @@ describe("RemoteData Utility", () => {
     });
   });
 
-  describe("nullFromIdle Function", () => {
-    it("should return null if the remoteData is idle", () => {
-      expect(rd.nullFromIdle(rd.ofIdle())).toEqual(rd.of(null));
-    });
-    it("should return the remoteData if the remoteData is pending", () => {
-      expect(rd.nullFromIdle(rd.ofPending())).toEqual(rd.ofPending());
-    });
-    it("should return the remoteData if the remoteData is error", () => {
-      expect(rd.nullFromIdle(rd.ofError(new Error("Test error")))).toEqual(
-        rd.ofError(new Error("Test error"))
+  describe("switchIdle Function", () => {
+    it("should return fallback success if the remoteData is idle", () => {
+      expect(rd.switchIdle(rd.ofIdle(), rd.of("fallback"))).toEqual(
+        rd.of("fallback")
       );
     });
+    it("should return the remoteData if the remoteData is pending", () => {
+      expect(rd.switchIdle(rd.ofPending(), rd.of("fallback"))).toEqual(
+        rd.ofPending()
+      );
+    });
+    it("should return the remoteData if the remoteData is error", () => {
+      expect(
+        rd.switchIdle(rd.ofError(new Error("Test error")), rd.of("fallback"))
+      ).toEqual(rd.ofError(new Error("Test error")));
+    });
     it("should return success data unchanged", () => {
-      expect(rd.nullFromIdle(rd.of(10))).toEqual(rd.of(10));
+      expect(rd.switchIdle(rd.of(10), rd.of("fallback"))).toEqual(rd.of(10));
+    });
+    it("should use pending remote fallback when source is idle", () => {
+      expect(rd.switchIdle(rd.ofIdle(), rd.ofPending())).toEqual(rd.ofPending());
+    });
+    it("should use error remote fallback when source is idle", () => {
+      expect(
+        rd.switchIdle(rd.ofIdle(), rd.ofError(new Error("fallback error")))
+      ).toEqual(rd.ofError(new Error("fallback error")));
+    });
+    it("should use success remote fallback when source is idle", () => {
+      expect(rd.switchIdle(rd.ofIdle(), rd.of(123))).toEqual(rd.of(123));
     });
   });
 
