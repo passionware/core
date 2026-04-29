@@ -840,6 +840,19 @@ export const rd = {
     }
     return remoteData;
   },
+  /**
+   * Useful pre-processor for `rd.combine()` when some fields are optional.
+   *
+   * `rd.combine()` does not support mixing `idle` and `success` states.
+   * Converting `idle` into `success(null)` makes the state explicit and allows
+   * combine to proceed without producing an error.
+   */
+  nullFromIdle: <T>(remoteData: RemoteData<T>): RemoteData<T | null> => {
+    if (rd.isIdle(remoteData)) {
+      return rd.of(null);
+    }
+    return rd.mapMonadic(remoteData, (data) => rd.of(data));
+  },
   fromMutation: mutationDataToRemoteData,
   toMutation: remoteDataToMutationData,
 };
