@@ -1,6 +1,7 @@
 {
   "name": "@passionware/icons",
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "main": "src/icons.tsx",
   "repository": {

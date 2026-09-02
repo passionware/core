@@ -1,10 +1,12 @@
 {
   "name": "@passionware/component-factory",
   "version": "0.0.0",
+  "license": "MIT",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "repository": {
     "url": "https://github.com/passionware/core.git"

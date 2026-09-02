@@ -1,6 +1,7 @@
 {
   "name": "@passionware/ui",
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "repository": {
     "url": "https://github.com/passionware/core.git"

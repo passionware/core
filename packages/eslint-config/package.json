@@ -1,11 +1,13 @@
 {
   "name": "@passionware/eslint-config",
   "version": "0.0.0",
+  "license": "MIT",
   "private": true,
   "files": [
     "library.js",
     "next.js",
-    "react-internal.js"
+    "react-internal.js",
+    "LICENSE"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.17.0",

@@ -1,11 +1,13 @@
 {
   "name": "@passionware/platform-storybook",
   "version": "0.0.0",
+  "license": "MIT",
   "module": "dist/index.js",
   "type": "module",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "repository": {
     "url": "https://github.com/passionware/core.git"

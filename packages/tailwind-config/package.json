@@ -1,6 +1,7 @@
 {
   "name": "@passionware/tailwind-config",
   "version": "0.0.0",
+  "license": "MIT",
   "main": "./src/index.ts",
   "repository": {
     "url": "https://github.com/passionware/core.git"
