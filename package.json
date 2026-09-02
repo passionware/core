@@ -10,6 +10,7 @@
     "test:watch": "turbo run test:watch",
     "ts": "turbo ts",
     "changeset": "changeset",
+    "copy-licenses": "node scripts/copy-licenses.mjs",
     "storybook": "turbo run dev --filter workshop --no-color",
     "build-storybook": "turbo run build --filter workshop --no-color"
   },
@@ -60,7 +61,7 @@
   "main": "index.js",
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/passionware/core/issues"
   },
