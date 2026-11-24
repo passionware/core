@@ -218,4 +218,88 @@ describe("Messaging Systems", () => {
       expect(cleanup2).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("subscribeToRequestAsync", () => {
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((r) => (resolve = r));
+      return { promise, resolve };
+    }
+
+    async function expectToRespondOnceResolved(
+      subscribeToRequestAsync: (
+        listener: (request: number) => Promise<string>,
+      ) => () => void,
+      sendRequest: (request: number) => Promise<unknown>,
+      expected: unknown,
+    ) {
+      const work = deferred<string>();
+      subscribeToRequestAsync(
+        async (request) => `${await work.promise} ${request}`,
+      );
+
+      let settled = false;
+      const response = sendRequest(42).finally(() => (settled = true));
+      await delay(0);
+      expect(settled).toBe(false);
+
+      work.resolve("Response for");
+      await expect(response).resolves.toEqual(expected);
+    }
+
+    it("responds in request-response mode once the listener resolves", async () => {
+      const messaging = createRequestResponseMessaging<number, string>();
+      await expectToRespondOnceResolved(
+        messaging.subscribeToRequestAsync,
+        messaging.sendRequest,
+        "Response for 42",
+      );
+    });
+
+    it("responds in request-collect mode once the listener resolves", async () => {
+      const messaging = createRequestCollectMessaging<number, string>();
+      await expectToRespondOnceResolved(
+        messaging.subscribeToRequestAsync,
+        messaging.sendRequest,
+        ["Response for 42"],
+      );
+    });
+
+    it("responds in request-first-response mode once the listener resolves", async () => {
+      const messaging = createRequestFirstResponseMessaging<number, string>();
+      await expectToRespondOnceResolved(
+        messaging.subscribeToRequestAsync,
+        messaging.sendRequest,
+        "Response for 42",
+      );
+    });
+
+    it("collects async and sync listeners together", async () => {
+      const messaging = createRequestCollectMessaging<number, string>();
+      messaging.subscribeToRequestAsync(async (request) => {
+        await delay(5);
+        return `Async response for ${request}`;
+      });
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Sync response for ${request}`);
+      });
+
+      await expect(messaging.sendRequest(42)).resolves.toEqual([
+        "Sync response for 42",
+        "Async response for 42",
+      ]);
+    });
+
+    it("stops responding after unsubscribe", async () => {
+      const messaging = createRequestResponseMessaging<number, string>();
+      const unsubscribe = messaging.subscribeToRequestAsync(
+        async (request) => `Response for ${request}`,
+      );
+      unsubscribe();
+
+      await expect(messaging.sendRequest(42)).rejects.toThrow(
+        "No listener found for the request in request-response mode",
+      );
+    });
+  });
 });
