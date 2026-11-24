@@ -4,6 +4,38 @@ export type MessageEventPayload<Request, Response> = {
 };
 type MaybeCleanupFnWithSource = void | ((source: "self" | "other") => void);
 type MaybeCleanupFn = void | (() => void);
+
+/** `signal` aborts when the request ends without this listener's response. */
+export type AsyncRequestListener<Request, Response> = (
+  request: Request,
+  context: { signal: AbortSignal },
+) => Promise<Response>;
+
+function sendResponseWhenResolved<Request, Response>(
+  listener: AsyncRequestListener<Request, Response>,
+) {
+  return ({
+    request,
+    sendResponse,
+  }: MessageEventPayload<Request, Response>) => {
+    const controller = new AbortController();
+    let responded = false;
+    void listener(request, { signal: controller.signal }).then(
+      (response) => {
+        if (controller.signal.aborted) return;
+        responded = true;
+        sendResponse(response);
+      },
+      (error) => {
+        // once aborted, the outcome is no longer awaited, an abort error included
+        if (!controller.signal.aborted) throw error;
+      },
+    );
+    return () => {
+      if (!responded) controller.abort();
+    };
+  };
+}
 export function createRequestResponseMessaging<
   Message extends MessageSpec<unknown, unknown>,
 >(): Messaging<Message>;
@@ -27,6 +59,11 @@ export function createRequestResponseMessaging<Request, Response>(): Messaging<{
     ) {
       listeners.add(listener);
       return () => void listeners.delete(listener);
+    },
+    subscribeToRequestAsync(listener: AsyncRequestListener<Request, Response>) {
+      const payloadListener = sendResponseWhenResolved(listener);
+      listeners.add(payloadListener);
+      return () => void listeners.delete(payloadListener);
     },
     sendRequest(request: Request) {
       return new Promise<Response>((resolve, reject) => {
@@ -95,6 +132,11 @@ export function createRequestCollectMessaging<Request, Response>() {
     ) {
       listeners.add(listener);
       return () => void listeners.delete(listener);
+    },
+    subscribeToRequestAsync(listener: AsyncRequestListener<Request, Response>) {
+      const payloadListener = sendResponseWhenResolved(listener);
+      listeners.add(payloadListener);
+      return () => void listeners.delete(payloadListener);
     },
     sendRequest(request: Request, warningTimeout?: number) {
       return new Promise<Response[]>((resolve, reject) => {
@@ -188,6 +230,11 @@ export function createRequestFirstResponseMessaging<Request, Response>() {
       listeners.add(listener);
       return () => void listeners.delete(listener);
     },
+    subscribeToRequestAsync(listener: AsyncRequestListener<Request, Response>) {
+      const payloadListener = sendResponseWhenResolved(listener);
+      listeners.add(payloadListener);
+      return () => void listeners.delete(payloadListener);
+    },
     sendRequest(request: Request) {
       // todo - here we should start collecting cleanup functions, so we isolate the cleanup functions for each request
       return new Promise<Response>((resolve, reject) => {
@@ -260,6 +307,10 @@ export type Messaging<Message extends MessageSpec<unknown, unknown>> = {
       payload: MessageEventPayload<Message["request"], Message["response"]>,
     ) => void,
   ) => () => void;
+  /** Sends the listener's resolved value as the response; no cleanup function. */
+  subscribeToRequestAsync: (
+    listener: AsyncRequestListener<Message["request"], Message["response"]>,
+  ) => () => void;
   sendRequest: (request: Message["request"]) => Promise<Message["response"]>;
 };
 
@@ -270,6 +321,10 @@ export type CollectResponseMessaging<
     listener: (
       payload: MessageEventPayload<Message["request"], Message["response"]>,
     ) => void,
+  ) => () => void;
+  /** Sends the listener's resolved value as the response; no cleanup function. */
+  subscribeToRequestAsync: (
+    listener: AsyncRequestListener<Message["request"], Message["response"]>,
   ) => () => void;
   sendRequest: (
     request: Message["request"],
@@ -284,6 +339,10 @@ export type FirstResponseMessaging<
     listener: (
       payload: MessageEventPayload<Message["request"], Message["response"]>,
     ) => void,
+  ) => () => void;
+  /** Sends the listener's resolved value as the response; no cleanup function. */
+  subscribeToRequestAsync: (
+    listener: AsyncRequestListener<Message["request"], Message["response"]>,
   ) => () => void;
   sendRequest: (request: Message["request"]) => Promise<Message["response"]>;
 };

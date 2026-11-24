@@ -218,4 +218,143 @@ describe("Messaging Systems", () => {
       expect(cleanup2).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("subscribeToRequestAsync", () => {
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((r) => (resolve = r));
+      return { promise, resolve };
+    }
+
+    async function expectToRespondOnceResolved(
+      subscribeToRequestAsync: (
+        listener: (request: number) => Promise<string>,
+      ) => () => void,
+      sendRequest: (request: number) => Promise<unknown>,
+      expected: unknown,
+    ) {
+      const work = deferred<string>();
+      subscribeToRequestAsync(
+        async (request) => `${await work.promise} ${request}`,
+      );
+
+      let settled = false;
+      const response = sendRequest(42).finally(() => (settled = true));
+      await delay(0);
+      expect(settled).toBe(false);
+
+      work.resolve("Response for");
+      await expect(response).resolves.toEqual(expected);
+    }
+
+    it("responds in request-response mode once the listener resolves", async () => {
+      const messaging = createRequestResponseMessaging<number, string>();
+      await expectToRespondOnceResolved(
+        messaging.subscribeToRequestAsync,
+        messaging.sendRequest,
+        "Response for 42",
+      );
+    });
+
+    it("responds in request-collect mode once the listener resolves", async () => {
+      const messaging = createRequestCollectMessaging<number, string>();
+      await expectToRespondOnceResolved(
+        messaging.subscribeToRequestAsync,
+        messaging.sendRequest,
+        ["Response for 42"],
+      );
+    });
+
+    it("responds in request-first-response mode once the listener resolves", async () => {
+      const messaging = createRequestFirstResponseMessaging<number, string>();
+      await expectToRespondOnceResolved(
+        messaging.subscribeToRequestAsync,
+        messaging.sendRequest,
+        "Response for 42",
+      );
+    });
+
+    it("collects async and sync listeners together", async () => {
+      const messaging = createRequestCollectMessaging<number, string>();
+      messaging.subscribeToRequestAsync(async (request) => {
+        await delay(5);
+        return `Async response for ${request}`;
+      });
+      messaging.subscribeToRequest(({ request, sendResponse }) => {
+        sendResponse(`Sync response for ${request}`);
+      });
+
+      await expect(messaging.sendRequest(42)).resolves.toEqual([
+        "Sync response for 42",
+        "Async response for 42",
+      ]);
+    });
+
+    it("aborts a listener that lost the race in request-first-response mode", async () => {
+      const messaging = createRequestFirstResponseMessaging<number, string>();
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const late = deferred<string>();
+      let lateSignal: AbortSignal | undefined;
+      messaging.subscribeToRequestAsync(async (_request, { signal }) => {
+        lateSignal = signal;
+        return late.promise;
+      });
+      messaging.subscribeToRequestAsync(async (request) => `Fast ${request}`);
+
+      await expect(messaging.sendRequest(42)).resolves.toBe("Fast 42");
+      expect(lateSignal?.aborted).toBe(true);
+
+      late.resolve("Late 42");
+      await delay(0);
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
+    });
+
+    it("ignores the rejection of an aborted listener", async () => {
+      const messaging = createRequestFirstResponseMessaging<number, string>();
+      messaging.subscribeToRequestAsync(
+        (_request, { signal }) =>
+          new Promise((_resolve, reject) =>
+            signal.addEventListener("abort", () => reject(signal.reason)),
+          ),
+      );
+      messaging.subscribeToRequestAsync(async (request) => `Fast ${request}`);
+
+      const unhandled = vi.fn();
+      process.on("unhandledRejection", unhandled);
+      await expect(messaging.sendRequest(42)).resolves.toBe("Fast 42");
+      await delay(0);
+      process.off("unhandledRejection", unhandled);
+      expect(unhandled).not.toHaveBeenCalled();
+    });
+
+    it("does not abort a listener that responded", async () => {
+      const messaging = createRequestCollectMessaging<number, string>();
+      const signals: AbortSignal[] = [];
+      messaging.subscribeToRequestAsync(async (request, { signal }) => {
+        signals.push(signal);
+        return `First ${request}`;
+      });
+      messaging.subscribeToRequestAsync(async (request, { signal }) => {
+        signals.push(signal);
+        await delay(5);
+        return `Second ${request}`;
+      });
+
+      await messaging.sendRequest(42);
+      expect(signals.map((signal) => signal.aborted)).toEqual([false, false]);
+    });
+
+    it("stops responding after unsubscribe", async () => {
+      const messaging = createRequestResponseMessaging<number, string>();
+      const unsubscribe = messaging.subscribeToRequestAsync(
+        async (request) => `Response for ${request}`,
+      );
+      unsubscribe();
+
+      await expect(messaging.sendRequest(42)).rejects.toThrow(
+        "No listener found for the request in request-response mode",
+      );
+    });
+  });
 });
