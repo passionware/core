@@ -5,8 +5,10 @@ export type MessageEventPayload<Request, Response> = {
 type MaybeCleanupFnWithSource = void | ((source: "self" | "other") => void);
 type MaybeCleanupFn = void | (() => void);
 
+/** `signal` aborts when the request ends without this listener's response. */
 export type AsyncRequestListener<Request, Response> = (
   request: Request,
+  context: { signal: AbortSignal },
 ) => Promise<Response>;
 
 function sendResponseWhenResolved<Request, Response>(
@@ -16,7 +18,22 @@ function sendResponseWhenResolved<Request, Response>(
     request,
     sendResponse,
   }: MessageEventPayload<Request, Response>) => {
-    void listener(request).then(sendResponse);
+    const controller = new AbortController();
+    let responded = false;
+    void listener(request, { signal: controller.signal }).then(
+      (response) => {
+        if (controller.signal.aborted) return;
+        responded = true;
+        sendResponse(response);
+      },
+      (error) => {
+        // once aborted, the outcome is no longer awaited, an abort error included
+        if (!controller.signal.aborted) throw error;
+      },
+    );
+    return () => {
+      if (!responded) controller.abort();
+    };
   };
 }
 export function createRequestResponseMessaging<

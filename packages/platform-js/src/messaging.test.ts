@@ -290,6 +290,61 @@ describe("Messaging Systems", () => {
       ]);
     });
 
+    it("aborts a listener that lost the race in request-first-response mode", async () => {
+      const messaging = createRequestFirstResponseMessaging<number, string>();
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const late = deferred<string>();
+      let lateSignal: AbortSignal | undefined;
+      messaging.subscribeToRequestAsync(async (_request, { signal }) => {
+        lateSignal = signal;
+        return late.promise;
+      });
+      messaging.subscribeToRequestAsync(async (request) => `Fast ${request}`);
+
+      await expect(messaging.sendRequest(42)).resolves.toBe("Fast 42");
+      expect(lateSignal?.aborted).toBe(true);
+
+      late.resolve("Late 42");
+      await delay(0);
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
+    });
+
+    it("ignores the rejection of an aborted listener", async () => {
+      const messaging = createRequestFirstResponseMessaging<number, string>();
+      messaging.subscribeToRequestAsync(
+        (_request, { signal }) =>
+          new Promise((_resolve, reject) =>
+            signal.addEventListener("abort", () => reject(signal.reason)),
+          ),
+      );
+      messaging.subscribeToRequestAsync(async (request) => `Fast ${request}`);
+
+      const unhandled = vi.fn();
+      process.on("unhandledRejection", unhandled);
+      await expect(messaging.sendRequest(42)).resolves.toBe("Fast 42");
+      await delay(0);
+      process.off("unhandledRejection", unhandled);
+      expect(unhandled).not.toHaveBeenCalled();
+    });
+
+    it("does not abort a listener that responded", async () => {
+      const messaging = createRequestCollectMessaging<number, string>();
+      const signals: AbortSignal[] = [];
+      messaging.subscribeToRequestAsync(async (request, { signal }) => {
+        signals.push(signal);
+        return `First ${request}`;
+      });
+      messaging.subscribeToRequestAsync(async (request, { signal }) => {
+        signals.push(signal);
+        await delay(5);
+        return `Second ${request}`;
+      });
+
+      await messaging.sendRequest(42);
+      expect(signals.map((signal) => signal.aborted)).toEqual([false, false]);
+    });
+
     it("stops responding after unsubscribe", async () => {
       const messaging = createRequestResponseMessaging<number, string>();
       const unsubscribe = messaging.subscribeToRequestAsync(
